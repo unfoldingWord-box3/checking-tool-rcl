@@ -30,9 +30,9 @@ var bookId = "obs"
 //CODE FOR GENERATING OBS VERSE OBJECTS AND OBS TNOTES GROUPS
 
 // const tit=getParsedUSFM(titBible);
-// const obs = fetchStories("unfoldingWord", "en").then((obs) => {
+// const obs = fetchStories("Door43-catalog", "es-419").then((obs) => {
 //   console.log({obs,enGlBible,ugntBible,glTn,glTaData,checkingData})
-//   const obsNotes = fetchObsNotes("unfoldingWord", "en").then((obsNotes) => {
+//   const obsNotes = fetchObsNotes("Door43-catalog", "es-419").then((obsNotes) => {
 //     const groupData = tsvToGroupData7Cols(obsNotes.content,"obs","path_to_resources",obsNotes.languageCode,"translationNotes",obs.stories,{categorized: true})
 //     console.log({groupData})
 //   })
@@ -43,15 +43,15 @@ const contextId_ = {}
 
 const project = {
   identifier: bookId,
-  languageId: 'en'
+  languageId: 'es-419'
 }
 
 const bibles = [
   {
     book: targetBible,
-    languageId: 'en',
+    languageId: 'es-419',
     bibleId: 'obs',
-    owner: 'unfoldingWord'
+    owner: 'Door43-catalog'
   },
   {
     book: enGlBible,

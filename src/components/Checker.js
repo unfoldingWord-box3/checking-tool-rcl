@@ -180,7 +180,11 @@ const Checker = ({
     verseText = removeUsfmMarkers(verseText)
     const alignedGLText = getAlignedGLText(alignedGlBible, contextId)
     const groupTitle = getTitleFromIndex(groupsIndex_, contextId?.groupId)
-    const groupPhrase = getPhraseFromTw(glWordsData, contextId?.groupId)
+
+    const groupPhrase =
+      checkType === translationNotes
+        ? contextId?.occurrenceNote
+        : getPhraseFromTw(glWordsData, contextId?.groupId)
     setState({
       alignedGLText,
       currentContextId: contextId,
