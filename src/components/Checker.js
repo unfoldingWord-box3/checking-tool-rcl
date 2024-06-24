@@ -1,9 +1,5 @@
-import React, {
-  useEffect,
-  useMemo,
-  useState
-} from 'react'
-import PropTypes from 'prop-types';
+import React, { useEffect, useMemo, useState } from 'react'
+import PropTypes from 'prop-types'
 import _ from 'lodash'
 import CheckArea from '../tc_ui_toolkit/VerseCheck/CheckArea'
 import ActionsArea from '../tc_ui_toolkit/VerseCheck/ActionsArea'
@@ -18,7 +14,7 @@ import {
   getAlignedGLText,
   getPhraseFromTw,
   getTitleFromIndex,
-  parseTwToIndex
+  parseTwToIndex,
 } from '../helpers/translationHelps/twArticleHelpers'
 import CheckInfoCard from '../tc_ui_toolkit/CheckInfoCard'
 import { parseTnToIndex } from '../helpers/translationHelps/tnArticleHelpers'
@@ -31,7 +27,7 @@ import PopoverContainer from '../containers/PopoverContainer'
 // const lexiconCache_ = {};
 
 const styles = {
-  containerDiv:{
+  containerDiv: {
     display: 'flex',
     flexDirection: 'row',
     width: '80vw',
@@ -50,16 +46,16 @@ const styles = {
     height: '250px',
     paddingBottom: '20px',
   },
-};
+}
 
 export const translationWords = 'translationWords'
 export const translationNotes = 'translationNotes'
 
 console.log('Checker.js - startup')
 const name = 'Checker'
-const targetBible = require('../__tests__/fixtures/bibles/1jn/targetBible.json')
 
 const Checker = ({
+  targetBible,
   alignedGlBible,
   bibles: bibles_,
   checkingData,
@@ -69,6 +65,16 @@ const Checker = ({
   glWordsData,
   translate,
 }) => {
+  console.log({
+    alignedGlBible,
+    bibles: bibles_,
+    checkingData,
+    checkType,
+    contextId,
+    getLexiconData,
+    glWordsData,
+    translate,
+  })
   const [state, _setState] = useState({
     alignedGLText: '',
     check: null,
@@ -84,7 +90,7 @@ const Checker = ({
     newSelections: null,
     nothingToSelect: false,
     popoverProps: {
-      popoverVisibility: false
+      popoverVisibility: false,
     },
     selections: null,
     verseText: '',
@@ -114,10 +120,10 @@ const Checker = ({
   }
 
   function updateMode(newSelections) {
-    const noSelections = (!newSelections.length)
+    const noSelections = !newSelections.length
     const newMode = noSelections ? 'select' : 'default'
     setState({
-      mode: newMode
+      mode: newMode,
     })
   }
 
@@ -147,7 +153,8 @@ const Checker = ({
         modified: false,
       }
 
-      if (check) { // if found a match, use the selections
+      if (check) {
+        // if found a match, use the selections
         newSelections = check.selections || []
         newState.selections = newSelections
         newState.newSelections = newSelections
@@ -160,13 +167,18 @@ const Checker = ({
         updateMode(newSelections)
       }
     }
-  }, [contextId, checkingData, glWordsData]);
+  }, [contextId, checkingData, glWordsData])
 
   function updateContext(contextId, groupsIndex_ = groupsIndex) {
     const reference = contextId?.reference
-    let verseText = getBestVerseFromBook(targetBible, reference?.chapter, reference?.verse)
+    let verseText = getBestVerseFromBook(
+      targetBible,
+      reference?.chapter,
+      reference?.verse
+    )
+    console.log({ targetBible, verseText, reference })
     verseText = removeUsfmMarkers(verseText)
-    const alignedGLText = getAlignedGLText(alignedGlBible, contextId);
+    const alignedGLText = getAlignedGLText(alignedGlBible, contextId)
     const groupTitle = getTitleFromIndex(groupsIndex_, contextId?.groupId)
     const groupPhrase = getPhraseFromTw(glWordsData, contextId?.groupId)
     setState({
@@ -174,51 +186,51 @@ const Checker = ({
       currentContextId: contextId,
       verseText,
       groupTitle,
-      groupPhrase
+      groupPhrase,
     })
   }
 
-  const tags = [];
-  const commentText = '';
-  const invalidated = false;
+  const tags = []
+  const commentText = ''
+  const invalidated = false
   const bookDetails = {
-    "id": "1jn",
-    "name": "1 John"
-  };
+    id: 'obs',
+    name: 'OBS',
+  }
   const toolsSettings = {
-    "ScripturePane": {
-      "currentPaneSettings": [
+    ScripturePane: {
+      currentPaneSettings: [
         {
-          "languageId": "targetLanguage",
-          "bibleId": "targetBible",
-          "fontSize": 120,
-          "owner": "Door43-Catalog"
+          languageId: 'targetLanguage',
+          bibleId: 'targetBible',
+          fontSize: 120,
+          owner: 'Door43-Catalog',
         },
         {
-          "languageId": "originalLanguage",
-          "bibleId": "ugnt",
-          "owner": "Door43-Catalog"
+          languageId: 'originalLanguage',
+          bibleId: 'ugnt',
+          owner: 'Door43-Catalog',
         },
         {
-          "languageId": "en",
-          "bibleId": "ult",
-          "owner": "Door43-Catalog",
-          "isPreRelease": false
+          languageId: 'en',
+          bibleId: 'ult',
+          owner: 'Door43-Catalog',
+          isPreRelease: false,
         },
         {
-          "languageId": "fa",
-          "bibleId": "glt",
-          "owner": "fa_gl",
-          "isPreRelease": false
-        }
-      ]
-    }
-  };
+          languageId: 'fa',
+          bibleId: 'glt',
+          owner: 'fa_gl',
+          isPreRelease: false,
+        },
+      ],
+    },
+  }
 
   const handleComment = () => {
     console.log(`${name}-handleComment`)
   }
-  const isVerseChanged = false;
+  const isVerseChanged = false
   const setToolSettings = () => {
     console.log(`${name}-setToolSettings`)
   }
@@ -233,32 +245,33 @@ const Checker = ({
   const handleTagsCheckbox = () => {
     console.log(`${name}-handleTagsCheckbox`)
   }
-  const validateSelections = (selections_) => {
+  const validateSelections = selections_ => {
     console.log(`${name}-validateSelections`, selections_)
   }
   const targetLanguageFont = 'default'
-  const unfilteredVerseText = 'The people who do not honor God will disappear, along with all of the things that they desire. But the people who do what God wants them to do will live forever!\n\n\\ts\\*\n\\p'
+  const unfilteredVerseText =
+    'The people who do not honor God will disappear, along with all of the things that they desire. But the people who do what God wants them to do will live forever!\n\n\\ts\\*\n\\p'
   const checkIfVerseChanged = () => {
     console.log(`${name}-checkIfVerseChanged`)
   }
   const targetLanguageDetails = {
-    "id": "en",
-    "name": "English",
-    "direction": "ltr",
-    "book": {
-      "name": "1 John"
-    }
+    id: 'en',
+    name: 'English',
+    direction: 'ltr',
+    book: {
+      name: '1 John',
+    },
   }
   const checkIfCommentChanged = () => {
     console.log(`${name}-checkIfCommentChanged`)
   }
-  const changeSelectionsInLocalState = (selections_) => {
+  const changeSelectionsInLocalState = selections_ => {
     console.log(`${name}-changeSelectionsInLocalState`, selections_)
     setState({
       newSelections: selections_,
-    });
+    })
   }
-  const toggleNothingToSelect = (select) => {
+  const toggleNothingToSelect = select => {
     console.log(`${name}-toggleNothingToSelect`, select)
     setState({ localNothingToSelect: select })
   }
@@ -291,13 +304,17 @@ const Checker = ({
   const bookmarkEnabled = false
   const saveSelection = () => {
     console.log(`${name}-saveSelection`)
-    const newGroupsData = _.cloneDeep(groupsData);
+    const newGroupsData = _.cloneDeep(groupsData)
     const checkInGroupsData = findCheck(newGroupsData, currentContextId)
     if (checkInGroupsData) {
       //save the selection changes
       const category = checkInGroupsData.category
-      const newCheckData = _.cloneDeep(currentCheckingData);
-      const checkInCheckingData = findCheck(newCheckData[category], currentContextId, false)
+      const newCheckData = _.cloneDeep(currentCheckingData)
+      const checkInCheckingData = findCheck(
+        newCheckData[category],
+        currentContextId,
+        false
+      )
       if (checkInCheckingData) {
         checkInCheckingData.selections = newSelections
         checkInGroupsData.selections = newSelections
@@ -307,7 +324,7 @@ const Checker = ({
           mode: 'default',
           modified: true,
           selections: newSelections,
-        });
+        })
 
         const nextCheck = findNextCheck(groupsData, currentContextId, false)
         const nextContextId = nextCheck?.contextId
@@ -321,17 +338,17 @@ const Checker = ({
     console.log(`${name}-cancelSelection`)
     setState({
       newSelections: selections,
-      mode: 'default'
-    });
+      mode: 'default',
+    })
   }
   const clearSelection = () => {
     console.log(`${name}-clearSelection`)
-    setState({ newSelections: [] });
+    setState({ newSelections: [] })
   }
   const toggleBookmark = () => {
     console.log(`${name}-toggleBookmark`)
   }
-  const changeMode = (mode) => {
+  const changeMode = mode => {
     console.log(`${name}-changeMode`, mode)
     setState({ mode })
   }
@@ -347,10 +364,17 @@ const Checker = ({
   const saveComment = () => {
     console.log(`${name}-saveComment`)
   }
-  const readyToDisplayChecker = groupsData && groupsIndex && currentContextId && verseText
+  console.log('Checker.js - before render', {
+    groupsData,
+    groupsIndex,
+    currentContextId,
+    verseText,
+  })
+  const readyToDisplayChecker =
+    groupsData && groupsIndex && currentContextId && verseText
 
   const getLexiconData_ = (lexiconId, entryId) => {
-    console.log(`${name}-getLexiconData_`, {lexiconId, entryId})
+    console.log(`${name}-getLexiconData_`, { lexiconId, entryId })
     const lexiconData = getLexiconData && getLexiconData(lexiconId, entryId)
     return lexiconData
   }
@@ -360,7 +384,7 @@ const Checker = ({
     setState({
       popoverProps: {
         popoverVisibility: false,
-      }
+      },
     })
   }
 
@@ -372,8 +396,8 @@ const Checker = ({
         title,
         bodyText,
         positionCoord,
-        onClosePopover: () => onClosePopover()
-      }
+        onClosePopover: () => onClosePopover(),
+      },
     })
   }
 
@@ -384,7 +408,8 @@ const Checker = ({
       for (const bible of bibles_) {
         const key = `${bible?.languageId}_${bible?.owner}`
         let keyGroup = bibles[key]
-        if (!keyGroup) { // if group does not exist, create new
+        if (!keyGroup) {
+          // if group does not exist, create new
           keyGroup = {}
           bibles[key] = keyGroup
         }
@@ -398,121 +423,119 @@ const Checker = ({
   }, [bibles_])
 
   const manifest = {
-    language_name: 'English'
+    language_name: 'English',
   }
 
-  return (
-    readyToDisplayChecker ?
-      <div style={styles.containerDiv}>
-        <GroupMenuComponent
-          bookName={bookName}
-          changeCurrentContextId={changeCurrentContextId}
-          contextId={currentContextId}
-          direction={direction}
-          groupsData={groupsData}
-          groupsIndex={groupsIndex}
-          targetLanguageFont={targetLanguageFont}
-          translate={translate}
-        />
-        <div style={{ display: 'flex', flexDirection: 'column',}}>
-          { bibles && Object.keys(bibles).length &&
-            <div style={styles.scripturePaneDiv}>
-              <ScripturePane
-                addObjectPropertyToManifest={null}
-                bibles={bibles}
-                complexScriptFonts={null}
-                contextId={currentContextId}
-                currentPaneSettings={paneSettings}
-                editVerseRef={null}
-                editTargetVerse={null}
-                expandedScripturePaneTitle={'expandedScripturePaneTitle'}
-                getAvailableScripturePaneSelections={null}
-                getLexiconData={getLexiconData_}
-                makeSureBiblesLoadedForTool={null}
-                projectDetailsReducer={{ manifest }}
-                selections={selections}
-                setToolSettings={null}
-                showPopover={showPopover}
-                onExpandedScripturePaneShow={null}
-                translate={translate}
-              />
-            </div>
-          }
-          <div>
-            <CheckInfoCard
-              getScriptureFromReference={null}
-              onLinkClick={() => false}
-              onSeeMoreClick={() => false}
-              phrase={groupPhrase}
-              seeMoreLabel={translate('see_more')}
-              showSeeMoreButton={false}
-              title={groupTitle}
+  return readyToDisplayChecker ? (
+    <div style={styles.containerDiv}>
+      <GroupMenuComponent
+        bookName={bookName}
+        changeCurrentContextId={changeCurrentContextId}
+        contextId={currentContextId}
+        direction={direction}
+        groupsData={groupsData}
+        groupsIndex={groupsIndex}
+        targetLanguageFont={targetLanguageFont}
+        translate={translate}
+      />
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        {bibles && Object.keys(bibles).length && (
+          <div style={styles.scripturePaneDiv}>
+            <ScripturePane
+              addObjectPropertyToManifest={null}
+              bibles={bibles}
+              complexScriptFonts={null}
+              contextId={currentContextId}
+              currentPaneSettings={paneSettings}
+              editVerseRef={null}
+              editTargetVerse={null}
+              expandedScripturePaneTitle={'expandedScripturePaneTitle'}
+              getAvailableScripturePaneSelections={null}
+              getLexiconData={getLexiconData_}
+              makeSureBiblesLoadedForTool={null}
+              projectDetailsReducer={{ manifest }}
+              selections={selections}
+              setToolSettings={null}
+              showPopover={showPopover}
+              onExpandedScripturePaneShow={null}
+              translate={translate}
             />
-            <div style={styles.centerDiv}>
-            </div>
-            <div style={styles.centerDiv}>
-              <CheckArea
-                alignedGLText={alignedGLText}
-                bookDetails={bookDetails}
-                changeSelectionsInLocalState={changeSelectionsInLocalState}
-                checkIfCommentChanged={checkIfCommentChanged}
-                checkIfVerseChanged={checkIfVerseChanged}
-                comment={commentText}
-                contextId={currentContextId}
-                handleComment={handleComment}
-                handleEditVerse={handleEditVerse}
-                handleTagsCheckbox={handleTagsCheckbox}
-                isVerseChanged={isVerseChanged}
-                invalidated={isVerseInvalidated}
-                maximumSelections={maximumSelections}
-                mode={mode}
-                newSelections={newSelections}
-                nothingToSelect={nothingToSelect}
-                openAlertDialog={openAlertDialog}
-                setToolSettings={setToolSettings}
-                selections={selections}
-                tags={tags}
-                targetBible={targetBible}
-                targetLanguageDetails={targetLanguageDetails}
-                targetLanguageFont={targetLanguageFont}
-                translate={translate}
-                toolsSettings={toolsSettings}
-                unfilteredVerseText={unfilteredVerseText}
-                verseText={verseText}
-                validateSelections={validateSelections}
-              />
-              <ActionsArea
-                bookmarkEnabled={bookmarkEnabled}
-                cancelComment={cancelComment}
-                cancelEditVerse={cancelEditVerse}
-                cancelSelection={cancelSelection}
-                changeMode={changeMode}
-                clearSelection={clearSelection}
-                isCommentChanged={isCommentChanged}
-                localNothingToSelect={localNothingToSelect}
-                mode={mode}
-                newSelections={newSelections}
-                nothingToSelect={nothingToSelect}
-                saveComment={saveComment}
-                saveEditVerse={saveEditVerse}
-                saveSelection={saveSelection}
-                selections={selections}
-                tags={tags}
-                toggleNothingToSelect={toggleNothingToSelect}
-                translate={translate}
-                toggleBookmark={toggleBookmark}
-              />
-            </div>
+          </div>
+        )}
+        <div>
+          <CheckInfoCard
+            getScriptureFromReference={null}
+            onLinkClick={() => false}
+            onSeeMoreClick={() => false}
+            phrase={groupPhrase}
+            seeMoreLabel={translate('see_more')}
+            showSeeMoreButton={false}
+            title={groupTitle}
+          />
+          <div style={styles.centerDiv}></div>
+          <div style={styles.centerDiv}>
+            <CheckArea
+              alignedGLText={alignedGLText}
+              bookDetails={bookDetails}
+              changeSelectionsInLocalState={changeSelectionsInLocalState}
+              checkIfCommentChanged={checkIfCommentChanged}
+              checkIfVerseChanged={checkIfVerseChanged}
+              comment={commentText}
+              contextId={currentContextId}
+              handleComment={handleComment}
+              handleEditVerse={handleEditVerse}
+              handleTagsCheckbox={handleTagsCheckbox}
+              isVerseChanged={isVerseChanged}
+              invalidated={isVerseInvalidated}
+              maximumSelections={maximumSelections}
+              mode={mode}
+              newSelections={newSelections}
+              nothingToSelect={nothingToSelect}
+              openAlertDialog={openAlertDialog}
+              setToolSettings={setToolSettings}
+              selections={selections}
+              tags={tags}
+              targetBible={targetBible}
+              targetLanguageDetails={targetLanguageDetails}
+              targetLanguageFont={targetLanguageFont}
+              translate={translate}
+              toolsSettings={toolsSettings}
+              unfilteredVerseText={unfilteredVerseText}
+              verseText={verseText}
+              validateSelections={validateSelections}
+            />
+            <ActionsArea
+              bookmarkEnabled={bookmarkEnabled}
+              cancelComment={cancelComment}
+              cancelEditVerse={cancelEditVerse}
+              cancelSelection={cancelSelection}
+              changeMode={changeMode}
+              clearSelection={clearSelection}
+              isCommentChanged={isCommentChanged}
+              localNothingToSelect={localNothingToSelect}
+              mode={mode}
+              newSelections={newSelections}
+              nothingToSelect={nothingToSelect}
+              saveComment={saveComment}
+              saveEditVerse={saveEditVerse}
+              saveSelection={saveSelection}
+              selections={selections}
+              tags={tags}
+              toggleNothingToSelect={toggleNothingToSelect}
+              translate={translate}
+              toggleBookmark={toggleBookmark}
+            />
           </div>
         </div>
-        { popoverProps?.popoverVisibility &&
-          <PopoverContainer {...popoverProps} />
-        }
       </div>
-      :
-      'Waiting for Data'
-  );
-};
+      {popoverProps?.popoverVisibility && (
+        <PopoverContainer {...popoverProps} />
+      )}
+    </div>
+  ) : (
+    'Waiting for Data'
+  )
+}
 
 Checker.propTypes = {
   alignedGlBible: PropTypes.object,
@@ -523,5 +546,5 @@ Checker.propTypes = {
   glWordsData: PropTypes.object.isRequired,
   translate: PropTypes.func.isRequired,
   getLexiconData: PropTypes.func,
-};
-export default Checker;
+}
+export default Checker
