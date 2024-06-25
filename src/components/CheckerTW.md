@@ -13,6 +13,7 @@ const glTwl = require('../__tests__/fixtures/translationWords/twl_1jn_parsed.jso
 const glTwData = require('../__tests__/fixtures/translationWords/enTw.json')
 const ugntBible = require('../__tests__/fixtures/bibles/1jn/ugntBible.json')
 const enGlBible = require('../__tests__/fixtures/bibles/1jn/enGlBible.json')
+const targetBible = require('../__tests__/fixtures/bibles/1jn/targetBible.json')
 const checkingData = extractGroupData(glTwl)
 
 const translate = (key) => {
@@ -85,6 +86,7 @@ const App = () => {
           checkingData={checkingData}
           glWordsData={glTwData}
           alignedGlBible={enGlBible}
+          targetBible={targetBible}
           checkType={translationWords}
           bibles={bibles}
           getLexiconData={getLexiconData_}

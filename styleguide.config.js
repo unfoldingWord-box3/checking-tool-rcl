@@ -4,6 +4,10 @@ const path = require('path')
 
 const sections = [
   {
+    name: 'Checker-obs-translationNotes',
+    content: 'src/components/CheckerObsTn.md',
+  },
+  {
     name: 'Checker-translationWords',
     content: 'src/components/CheckerTW.md',
   },
@@ -15,7 +19,7 @@ const sections = [
     name: 'CheckArea',
     content: 'src/components/CheckArea.md',
   },
-];
+]
 
 module.exports = {
   title: `${name} v${version}`,
@@ -37,19 +41,19 @@ module.exports = {
         },
         {
           test: /\.(sa|sc|c)ss$/,
-          use: ["style-loader", "css-loader", "sass-loader"]
+          use: ['style-loader', 'css-loader', 'sass-loader'],
         },
         {
           test: /\.(jpe?g|png|gif|svg)$/i,
           use: [
             {
-              loader: "file-loader",
+              loader: 'file-loader',
               options: {
-                name: "/public/icons/[name].[ext]"
-              }
-            }
-          ]
-        }
+                name: '/public/icons/[name].[ext]',
+              },
+            },
+          ],
+        },
       ],
     },
   },
