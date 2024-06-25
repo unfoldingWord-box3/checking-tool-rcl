@@ -65,16 +65,6 @@ const Checker = ({
   glWordsData,
   translate,
 }) => {
-  console.log({
-    alignedGlBible,
-    bibles: bibles_,
-    checkingData,
-    checkType,
-    contextId,
-    getLexiconData,
-    glWordsData,
-    translate,
-  })
   const [state, _setState] = useState({
     alignedGLText: '',
     check: null,
@@ -176,7 +166,6 @@ const Checker = ({
       reference?.chapter,
       reference?.verse
     )
-    console.log({ targetBible, verseText, reference })
     verseText = removeUsfmMarkers(verseText)
     const alignedGLText = getAlignedGLText(alignedGlBible, contextId)
     const groupTitle = getTitleFromIndex(groupsIndex_, contextId?.groupId)
@@ -368,12 +357,7 @@ const Checker = ({
   const saveComment = () => {
     console.log(`${name}-saveComment`)
   }
-  console.log('Checker.js - before render', {
-    groupsData,
-    groupsIndex,
-    currentContextId,
-    verseText,
-  })
+
   const readyToDisplayChecker =
     groupsData && groupsIndex && currentContextId && verseText
 
