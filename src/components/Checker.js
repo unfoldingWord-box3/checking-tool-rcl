@@ -79,11 +79,11 @@ const Checker = ({
   translate,
 }) => {
   const [paneSettings, setPaneSettings] = useState([])
-  const [toolsSettings, setToolsSettings] = useState([])
+  const [toolsSettings, setToolsSettings] = useState({ })
+  const [bibles, setBibles] = useState({ })
   const [state, _setState] = useState({
     alignedGLText: '',
     article: null,
-    bibles: {},
     check: null,
     currentContextId: null,
     currentCheckingData: null,
@@ -108,7 +108,6 @@ const Checker = ({
   const {
     alignedGLText,
     article,
-    bibles,
     check,
     currentContextId,
     currentCheckingData,
@@ -264,18 +263,13 @@ const Checker = ({
         _toolsSettings[NAMESPACE] = componentSettings
       }
       componentSettings[fieldName] = fieldValue
-
-      delay(100).then(() => {
-        setToolsSettings(_toolsSettings)
-      })
+      setToolsSettings(_toolsSettings)
     }
   }
 
   const setToolSettingsScripture = (NAMESPACE, fieldName, _paneSettings) => {
     console.log(`${name}-setToolSettingsScripture`, _paneSettings)
-    delay(100).then(() => {
-      setPaneSettings( _paneSettings )
-    })
+    setPaneSettings( _paneSettings )
   }
   const openAlertDialog = () => {
     console.log(`${name}-openAlertDialog`)
@@ -501,9 +495,9 @@ const Checker = ({
       }
     };
 
-    setState({ bibles: _bibles })
+    setBibles( _bibles )
     setPaneSettings( _paneSettings )
-    setToolsSettings(_toolsSettings)
+    setToolsSettings( _toolsSettings )
   }, [bibles_])
 
   const manifest = {
