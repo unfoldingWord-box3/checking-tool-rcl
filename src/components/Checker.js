@@ -29,11 +29,6 @@ import complexScriptFonts from '../common/complexScriptFonts'
 import TranslationHelps from '../tc_ui_toolkit/TranslationHelps'
 import * as tHelpsHelpers from '../helpers/tHelpsHelpers'
 import { getUsfmForVerseContent } from '../helpers/UsfmFileConversionHelpers'
-import delay from '../utils/delay'
-// const tc = require('../__tests__/fixtures/tc.json')
-// const toolApi = require('../__tests__/fixtures/toolApi.json')
-//
-// const lexiconCache_ = {};
 
 const localStyles = {
   containerDiv:{
