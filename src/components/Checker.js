@@ -29,6 +29,7 @@ import complexScriptFonts from '../common/complexScriptFonts'
 import TranslationHelps from '../tc_ui_toolkit/TranslationHelps'
 import * as tHelpsHelpers from '../helpers/tHelpsHelpers'
 import { getUsfmForVerseContent } from '../helpers/UsfmFileConversionHelpers'
+import delay from '../utils/delay'
 // const tc = require('../__tests__/fixtures/tc.json')
 // const toolApi = require('../__tests__/fixtures/toolApi.json')
 //
@@ -77,9 +78,12 @@ const Checker = ({
   targetLanguageDetails,
   translate,
 }) => {
+  const [paneSettings, setPaneSettings] = useState([])
+  const [toolsSettings, setToolsSettings] = useState([])
   const [state, _setState] = useState({
     alignedGLText: '',
     article: null,
+    bibles: {},
     check: null,
     currentContextId: null,
     currentCheckingData: null,
@@ -104,6 +108,7 @@ const Checker = ({
   const {
     alignedGLText,
     article,
+    bibles,
     check,
     currentContextId,
     currentCheckingData,
@@ -248,8 +253,29 @@ const Checker = ({
     console.log(`${name}-handleComment`)
   }
   const isVerseChanged = false;
-  const setToolSettings = () => {
-    console.log(`${name}-setToolSettings`)
+  const setToolSettings = (NAMESPACE, fieldName, fieldValue) => {
+    console.log(`${name}-setToolSettings ${fieldName}=${fieldValue}`)
+    if (toolsSettings) {
+      // Deep cloning object to avoid modifying original object
+      const _toolsSettings = _.cloneDeep(toolsSettings);
+      let componentSettings = _toolsSettings?.[NAMESPACE]
+      if (!componentSettings) {
+        componentSettings = { }
+        _toolsSettings[NAMESPACE] = componentSettings
+      }
+      componentSettings[fieldName] = fieldValue
+
+      delay(100).then(() => {
+        setToolsSettings(_toolsSettings)
+      })
+    }
+  }
+
+  const setToolSettingsScripture = (NAMESPACE, fieldName, _paneSettings) => {
+    console.log(`${name}-setToolSettingsScripture`, _paneSettings)
+    delay(100).then(() => {
+      setPaneSettings( _paneSettings )
+    })
   }
   const openAlertDialog = () => {
     console.log(`${name}-openAlertDialog`)
@@ -444,9 +470,9 @@ const Checker = ({
     keyGroup[bibleId] = book
   }
 
-  const { bibles, paneSettings } = useMemo(() => {
-    const bibles = {}
-    let paneSettings = []
+  useEffect(() => {
+    const _bibles = {}
+    let _paneSettings = []
     if (bibles_?.length) {
       for (const bible of bibles_) {
         let languageId = bible?.languageId
@@ -457,27 +483,28 @@ const Checker = ({
           languageId = "originalLanguage"
         }
         const key = `${languageId}_${owner}`
-        saveBibleToKey(bibles, key, bibleId, book)
-        saveBibleToKey(bibles, languageId, bibleId, book) // also save as default for language without owner
+        saveBibleToKey(_bibles, key, bibleId, book)
+        saveBibleToKey(_bibles, languageId, bibleId, book) // also save as default for language without owner
         const pane = {
           ...bible,
           languageId
         }
-        paneSettings.push(pane)
+        _paneSettings.push(pane)
       }
     } else {
-      paneSettings = []
+      _paneSettings = []
     }
 
-    return { bibles, paneSettings }
+    const _toolsSettings = {
+      "CheckArea": {
+        "fontSize": 100
+      }
+    };
+
+    setState({ bibles: _bibles })
+    setPaneSettings( _paneSettings )
+    setToolsSettings(_toolsSettings)
   }, [bibles_])
-
-  const toolsSettings = {
-    "ScripturePane": {
-      "currentPaneSettings": paneSettings
-    }
-  };
-
 
   const manifest = {
     language_name: 'English'
@@ -519,7 +546,7 @@ const Checker = ({
                 makeSureBiblesLoadedForTool={null}
                 projectDetailsReducer={{ manifest }}
                 selections={selections}
-                setToolSettings={null}
+                setToolSettings={setToolSettingsScripture}
                 showPopover={showPopover}
                 onExpandedScripturePaneShow={null}
                 translate={translate}
