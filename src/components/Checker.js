@@ -263,28 +263,29 @@ const Checker = ({
     console.log(`${name}-setToolSettings ${fieldName}=${fieldValue}`)
     if (toolsSettings) {
       // Deep cloning object to avoid modifying original object
-      const _toolsSettings = _.cloneDeep(toolsSettings);
+      const _toolsSettings = { ...toolsSettings };
       let componentSettings = _toolsSettings?.[NAMESPACE]
       if (!componentSettings) {
         componentSettings = { }
         _toolsSettings[NAMESPACE] = componentSettings
       }
       componentSettings[fieldName] = fieldValue
-      setSettings({ toolsSettings: _toolsSettings })
+      setSettings({ toolsSettings: _toolsSettings }, true)
     }
   }
 
-  function setSettings(newSettings) {
+  function setSettings(newSettings, doSave = false) {
     const _settings = {
       ...settings,
       ...newSettings
     }
+
     _setSettings(_settings)
-    saveSettings && saveSettings(_settings)
+    doSave && saveSettings && saveSettings(_settings)
   }
 
   const setToolSettingsScripture = (NAMESPACE, fieldName, _paneSettings) => {
-    console.log(`${name}-setToolSettingsScripture`, _paneSettings)
+    console.log(`${name}-setToolSettingsScripture ${fieldName}`, _paneSettings)
     const _paneKeySettings = {...paneKeySettings}
 
     for (const paneSettings of _paneSettings) {
@@ -298,19 +299,7 @@ const Checker = ({
       paneKeySettings: _paneKeySettings,
     }
 
-    // if target pane font has changed, update manifest
-    const targetPane = _paneSettings.find(pane => {
-      return (pane?.bibleId === 'targetBible')
-    })
-    const targetFont = targetPane?.font
-    if (targetFont && (targetFont !== manifest?.projectFont)) {
-      const _manifest = {
-        ...manifest,
-        projectFont: projectFont || ''
-      }
-      _settings.manifest = _manifest
-    }
-    setSettings(_settings)
+    setSettings(_settings, true)
   }
 
   const addObjectPropertyToManifest = (fieldName, fieldValue) => {
@@ -320,7 +309,7 @@ const Checker = ({
         ...manifest,
         [fieldName]: fieldValue
       }
-      setSettings({ manifest: _manifest })
+      setSettings({ manifest: _manifest }, true)
     }
   }
 
@@ -567,7 +556,7 @@ const Checker = ({
       paneKeySettings: _paneKeySettings,
       toolsSettings: _toolsSettings,
       manifest: _manifest
-    })
+    }, false)
   }, [bibles_])
 
   const styleProps = styles || {}
