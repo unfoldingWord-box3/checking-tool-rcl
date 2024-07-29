@@ -274,6 +274,39 @@ const Checker = ({
     }
   }
 
+  /**
+   * clear out bible data before saving settings
+   * @param {object} _settings
+   * @private
+   */
+  function _saveSettings(_settings) {
+    if (saveSettings && _settings) {
+      const newSettings = { ..._settings }
+      const _paneSettings = [ ...newSettings.paneSettings ]
+      for (let i = 0; i < _paneSettings.length; i++) {
+        const _paneSetting = {..._paneSettings[i]} // shallow copy
+        if (_paneSetting?.book) {
+          delete _paneSetting.book // remove all the book data before saving
+        }
+        _paneSettings[i] = _paneSetting
+      }
+      newSettings.paneSettings = _paneSettings
+
+      const _paneKeySettings = { ...newSettings.paneKeySettings }
+      const keys = Object.keys(_paneKeySettings)
+      for (const key of keys) {
+        const _paneSetting = {..._paneKeySettings[key]} // shallow copy
+        if (_paneSetting?.book) {
+          delete _paneSetting.book // remove all the book data before saving
+        }
+        _paneKeySettings[key] = _paneSetting
+      }
+      newSettings.paneKeySettings = _paneKeySettings
+
+      saveSettings(newSettings)
+    }
+  }
+
   function setSettings(newSettings, doSave = false) {
     const _settings = {
       ...settings,
@@ -281,7 +314,7 @@ const Checker = ({
     }
 
     _setSettings(_settings)
-    doSave && saveSettings && saveSettings(_settings)
+    doSave && _saveSettings(_settings)
   }
 
   const setToolSettingsScripture = (NAMESPACE, fieldName, _paneSettings) => {
