@@ -32,9 +32,9 @@ export function lookupTranslationForKey(translations, key) {
  * @param text
  * @returns {JSX.Element|string}
  */
-function decodeString(text) {
-  if (text.indexOf('<')) {
-    return <div>{text}</div>
+export function decodeString(text) {
+  if (text?.includes('<')) {
+    return <div dangerouslySetInnerHTML={{ __html: text }} />;
   }
   return text
 }
