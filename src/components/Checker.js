@@ -549,28 +549,30 @@ const Checker = ({
    */
   function editTargetVerse(chapter, verse, oldVerseText, newVerseText) {
     console.log(`editTargetVerse ${chapter}:${verse} - changed to ${newVerseText}`)
-    const _bibles = [...bibles]
-    const targetBible = {...bibles[0]}
+    const _bibles = [ ...bibles_]
+    const targetBible = {..._bibles[0]}
     _bibles[0] = targetBible
-    const targetChapter = {...targetBible[chapter]}
-    targetBible[chapter] = targetChapter
+    const targetBook = {...targetBible?.book}
+    targetBible.book = targetBook
+    const targetChapter = {...targetBook[chapter]}
+    targetBook[chapter] = targetChapter
     targetChapter[verse] = newVerseText
-    setBibles(_bibles)
+    updateSettings(_bibles)
     changeTargetVerse && changeTargetVerse(chapter, verse, oldVerseText, newVerseText)
   }
 
-  useEffect(() => {
+  function updateSettings(newBibles) {
     const _bibles = {}
     let _paneSettings = []
     const _paneKeySettings = initialSettings?.paneKeySettings || {}
-    if (bibles_?.length) {
-      for (const bible of bibles_) {
+    if (newBibles?.length) {
+      for (const bible of newBibles) {
         let languageId = bible?.languageId
         const owner = bible?.owner
         const book = bible?.book
         const bibleId = bible?.bibleId
         if (languageId === NT_ORIG_LANG || languageId === OT_ORIG_LANG) {
-          languageId = "originalLanguage"
+          languageId = 'originalLanguage'
         }
         const key = `${languageId}/${bibleId}/${owner}`
         const intialPaneSettings = _paneKeySettings?.[key]
@@ -579,7 +581,7 @@ const Checker = ({
         saveBibleToKey(_bibles, languageId, bibleId, book) // also save as default for language without owner
         const pane = intialPaneSettings || {
           ...bible,
-          languageId,
+          languageId
         }
         _paneSettings.push(pane)
         if (!intialPaneSettings) {
@@ -592,24 +594,28 @@ const Checker = ({
 
     const _toolsSettings = initialSettings?.toolsSettings ||
       {
-      "CheckArea": {
-        "fontSize": 100
+        'CheckArea': {
+          'fontSize': 100
+        }
       }
-    };
 
-    const _manifest =  initialSettings?.manifest ||
-    {
-      language_name: targetBible?.manifest?.dublin_core?.language?.title || 'Current',
-      projectFont: targetBible?.manifest?.projectFont || ''
-    }
+    const _manifest = initialSettings?.manifest ||
+      {
+        language_name: targetBible?.manifest?.dublin_core?.language?.title || 'Current',
+        projectFont: targetBible?.manifest?.projectFont || ''
+      }
 
-    setBibles( _bibles )
+    setBibles(_bibles)
     setSettings({
       paneSettings: _paneSettings,
       paneKeySettings: _paneKeySettings,
       toolsSettings: _toolsSettings,
       manifest: _manifest
     }, false)
+  }
+
+  useEffect(() => {
+    updateSettings(bibles_)
   }, [bibles_])
 
   const styleProps = styles || {}
