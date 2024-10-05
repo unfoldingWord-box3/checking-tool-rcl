@@ -61,6 +61,7 @@ const name = 'Checker'
 const Checker = ({
   alignedGlBible,
   bibles: bibles_,
+  changeTargetVerse,
   checkingData,
   checkType,
   contextId,
@@ -539,6 +540,25 @@ const Checker = ({
     keyGroup[bibleId] = book
   }
 
+  /**
+   * change content of verse
+   * @param {string} chapter
+   * @param {string} verse
+   * @param {string} oldVerseText
+   * @param {string} newVerseText
+   */
+  function editTargetVerse(chapter, verse, oldVerseText, newVerseText) {
+    console.log(`editTargetVerse ${chapter}:${verse} - changed to ${newVerseText}`)
+    const _bibles = [...bibles]
+    const targetBible = {...bibles[0]}
+    _bibles[0] = targetBible
+    const targetChapter = {...targetBible[chapter]}
+    targetBible[chapter] = targetChapter
+    targetChapter[verse] = newVerseText
+    setBibles(_bibles)
+    changeTargetVerse && changeTargetVerse(chapter, verse, oldVerseText, newVerseText)
+  }
+
   useEffect(() => {
     const _bibles = {}
     let _paneSettings = []
@@ -621,7 +641,7 @@ const Checker = ({
                 contextId={currentContextId}
                 currentPaneSettings={paneSettings}
                 editVerseRef={null}
-                editTargetVerse={null}
+                editTargetVerse={editTargetVerse}
                 expandedScripturePaneTitle={'expandedScripturePaneTitle'}
                 getAvailableScripturePaneSelections={null}
                 getLexiconData={getLexiconData_}
@@ -724,6 +744,7 @@ Checker.propTypes = {
   styles:PropTypes.object,
   alignedGlBible: PropTypes.object,
   bibles: PropTypes.array,
+  changeTargetVerse: PropTypes.func,
   checkingData: PropTypes.object.isRequired,
   checkType: PropTypes.string,
   contextId: PropTypes.object.isRequired,

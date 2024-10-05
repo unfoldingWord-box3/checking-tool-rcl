@@ -29,6 +29,7 @@ class Verse extends Component {
 
     if (typeof onEdit === 'function') {
       let _verseText = verseText
+      // make sure verseText does not contain verse objects, but is a string
       if ((typeof verseText !== 'string') && verseText?.verseObjects) {
         _verseText = verseObjectsToString(verseText.verseObjects)
       }
