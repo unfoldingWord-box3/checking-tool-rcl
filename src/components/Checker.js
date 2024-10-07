@@ -72,7 +72,7 @@ const Checker = ({
   saveSettings,
   showDocument,
   styles,
-  targetBible,
+  targetBible: targetBible_,
   targetLanguageDetails,
   translate,
 }) => {
@@ -89,6 +89,7 @@ const Checker = ({
     manifest
   } = settings
   const [bibles, setBibles] = useState({ })
+  const [targetBible, setTargetBible] = useState(targetBible_)
   const [state, _setState] = useState({
     alignedGLText: '',
     article: null,
@@ -550,18 +551,23 @@ const Checker = ({
   function editTargetVerse(chapter, verse, oldVerseText, newVerseText) {
     console.log(`editTargetVerse ${chapter}:${verse} - changed to ${newVerseText}`)
     const _bibles = [ ...bibles_]
-    const targetBible = {..._bibles[0]}
-    _bibles[0] = targetBible
-    const targetBook = {...targetBible?.book}
-    targetBible.book = targetBook
+    const _targetBible = {..._bibles[0]}
+    _bibles[0] = _targetBible
+    const targetBook = {..._targetBible?.book}
+    _targetBible.book = targetBook
     const targetChapter = {...targetBook[chapter]}
     targetBook[chapter] = targetChapter
     targetChapter[verse] = newVerseText
-    updateSettings(_bibles)
+    updateSettings(_bibles, targetBook)
+    const verseText = removeUsfmMarkers(newVerseText)
+    setState({
+      verseText
+    })
+
     changeTargetVerse && changeTargetVerse(chapter, verse, oldVerseText, newVerseText)
   }
 
-  function updateSettings(newBibles) {
+  function updateSettings(newBibles, targetBible) {
     const _bibles = {}
     let _paneSettings = []
     const _paneKeySettings = initialSettings?.paneKeySettings || {}
@@ -606,6 +612,7 @@ const Checker = ({
       }
 
     setBibles(_bibles)
+    setTargetBible(targetBible)
     setSettings({
       paneSettings: _paneSettings,
       paneKeySettings: _paneKeySettings,
@@ -615,8 +622,8 @@ const Checker = ({
   }
 
   useEffect(() => {
-    updateSettings(bibles_)
-  }, [bibles_])
+    updateSettings(bibles_, targetBible_)
+  }, [bibles_, targetBible_])
 
   const styleProps = styles || {}
   const _checkerStyles = {
