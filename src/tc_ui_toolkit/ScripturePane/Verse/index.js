@@ -5,7 +5,6 @@ import EditIcon from '@material-ui/icons/Edit';
 import { getReferenceStr } from '../helpers/utils';
 
 import './Verse.styles.css';
-import { verseObjectsToString } from 'tsv-groupdata-parser/lib/helpers/verseObjecsHelper'
 
 const styles = {
   edit_wrapper: { textAlign: 'right' },
@@ -28,12 +27,7 @@ class Verse extends Component {
     } = this.props;
 
     if (typeof onEdit === 'function') {
-      let _verseText = verseText
-      // make sure verseText does not contain verse objects, but is a string
-      if ((typeof verseText !== 'string') && verseText?.verseObjects) {
-        _verseText = verseObjectsToString(verseText.verseObjects)
-      }
-      onEdit(bibleId, chapter, verse, _verseText);
+      onEdit(bibleId, chapter, verse, verseText);
     }
   }
 
