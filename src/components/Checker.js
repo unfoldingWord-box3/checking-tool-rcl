@@ -29,6 +29,8 @@ import complexScriptFonts from '../common/complexScriptFonts'
 import TranslationHelps from '../tc_ui_toolkit/TranslationHelps'
 import * as tHelpsHelpers from '../helpers/tHelpsHelpers'
 import { getUsfmForVerseContent } from '../helpers/UsfmFileConversionHelpers'
+import * as AlignmentHelpers from '../utils/alignmentHelpers'
+import * as UsfmFileConversionHelpers from '../utils/UsfmFileConversionHelpers'
 
 const localStyles = {
   containerDiv:{
@@ -550,6 +552,10 @@ const Checker = ({
    */
   function editTargetVerse(chapter, verse, oldVerseText, newVerseText) {
     console.log(`editTargetVerse ${chapter}:${verse} - changed to ${newVerseText}`)
+
+    //////////////////////////////////
+    // first update component state
+
     const _bibles = [ ...bibles_]
     const _targetBible = {..._bibles[0]}
     _bibles[0] = _targetBible
@@ -559,12 +565,25 @@ const Checker = ({
     targetBook[chapter] = targetChapter
     targetChapter[verse] = newVerseText
     updateSettings(_bibles, targetBook)
+
     const verseText = removeUsfmMarkers(newVerseText)
     setState({
       verseText
     })
 
-    changeTargetVerse && changeTargetVerse(chapter, verse, oldVerseText, newVerseText)
+    //////////////////////////////////
+    // now apply new verse text to selected aligned verse and call back to extension to save
+
+    let _newVerseText = newVerseText
+    if (typeof _newVerseText !== 'string') {
+      _newVerseText = UsfmFileConversionHelpers.convertVerseDataToUSFM(_newVerseText)
+    }
+
+    const currentChapterData = targetBible?.[chapter]
+    const currentVerseData = currentChapterData?.[verse]
+    const { targetVerseObjects } = AlignmentHelpers.updateAlignmentsToTargetVerse(currentVerseData, _newVerseText)
+
+    changeTargetVerse && changeTargetVerse(chapter, verse, newVerseText, targetVerseObjects)
   }
 
   function updateSettings(newBibles, targetBible) {
