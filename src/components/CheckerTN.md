@@ -25,11 +25,11 @@ const saveSettings = (settings) => {
   console.log(`saveSettings`, settings)
 };
 
-const saveSelection = (newState) => {
+const saveCheckSettings = (newState) => {
   const selections = newState && newState.selections
-  console.log(`saveSelection - new selections`, selections)
+  console.log(`saveCheckSettings - new selections`, selections)
   const currentContextId = newState && newState.currentContextId
-  console.log(`saveSelection - current context data`, currentContextId)
+  console.log(`saveCheckSettings - current context data`, currentContextId)
 }
 
 const showDocument = true // set to false to disable showing ta or tw document
@@ -119,7 +119,7 @@ const App = () => {
           contextId={contextId}
           getLexiconData={getLexiconData_}
           glWordsData={glTaData}
-          saveSelection={saveSelection}
+          saveCheckSettings={saveCheckSettings}
           saveSettings={saveSettings}
           showDocument={showDocument}
           targetBible={targetBible}

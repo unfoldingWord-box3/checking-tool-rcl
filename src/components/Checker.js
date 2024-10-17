@@ -31,6 +31,7 @@ import * as tHelpsHelpers from '../helpers/tHelpsHelpers'
 import { getUsfmForVerseContent } from '../helpers/UsfmFileConversionHelpers'
 import * as AlignmentHelpers from '../utils/alignmentHelpers'
 import * as UsfmFileConversionHelpers from '../utils/UsfmFileConversionHelpers'
+import VerseCheck from '../tc_ui_toolkit/VerseCheck'
 
 const localStyles = {
   containerDiv:{
@@ -70,7 +71,7 @@ const Checker = ({
   getLexiconData,
   glWordsData,
   initialSettings,
-  saveSelection,
+  saveCheckSettings,
   saveSettings,
   showDocument,
   styles,
@@ -96,7 +97,7 @@ const Checker = ({
     alignedGLText: '',
     article: null,
     check: null,
-    currentContextId: null,
+    currentCheck: null,
     currentCheckingData: null,
     groupTitle: '',
     groupPhrase: '',
@@ -120,7 +121,7 @@ const Checker = ({
     alignedGLText,
     article,
     check,
-    currentContextId,
+    currentCheck,
     currentCheckingData,
     groupTitle,
     groupPhrase,
@@ -185,13 +186,14 @@ const Checker = ({
       setState(newState)
 
       if (flattenedGroupData && check?.contextId) {
-        updateContext(check?.contextId, groupsIndex)
+        updateContext(check, groupsIndex)
         updateMode(newSelections)
       }
     }
   }, [contextId, checkingData, glWordsData]);
 
-  function updateContext(contextId, groupsIndex_ = groupsIndex) {
+  function updateContext(newCheck, groupsIndex_ = groupsIndex) {
+    const contextId = newCheck?.contextId
     const reference = contextId?.reference
     let verseText = getBestVerseFromBook(targetBible, reference?.chapter, reference?.verse)
     if (typeof verseText !== 'string') {
@@ -239,7 +241,7 @@ const Checker = ({
 
     setState({
       alignedGLText,
-      currentContextId: contextId,
+      currentCheck: newCheck,
       verseText,
       groupTitle,
       groupPhrase,
@@ -356,7 +358,7 @@ const Checker = ({
   const handleEditVerse = () => {
     console.log(`${name}-handleEditVerse`)
   }
-  const maximumSelections = 4
+  const maximumSelections = 10
   const isVerseInvalidated = false
   const handleTagsCheckbox = () => {
     console.log(`${name}-handleTagsCheckbox`)
@@ -402,7 +404,7 @@ const Checker = ({
     setState({ localNothingToSelect: select })
   }
 
-  const changeCurrentContextId = (newContext, noCheck = false) => {
+  const changeCurrentCheck = (newContext, noCheck = false) => {
     const newContextId = newContext?.contextId
     console.log(`${name}-changeCurrentContextId`, newContextId)
 
@@ -410,7 +412,7 @@ const Checker = ({
     if (noCheck || selectionsUnchanged) {
       if (newContextId) {
         let check = findCheck(groupsData, newContextId, false)
-        updateContext(newContextId)
+        updateContext(newContext)
         if (check) {
           const newSelections = check.selections || []
           setState({
@@ -426,10 +428,13 @@ const Checker = ({
   }
   const direction = 'ltr'
 
-  const isCommentChanged = false
-  const bookmarkEnabled = false
+  const currentContextId = currentCheck?.contextId
+  const isCommentChanged = currentCheck?.comments
+  const bookmarkEnabled = currentCheck?.reminders
+  const isVerseEdited = currentCheck?.verseEdits
+
   const _saveSelection = () => {
-    console.log(`${name}-saveSelection`)
+    console.log(`${name}-saveSelection persist to file`)
     const newGroupsData = _.cloneDeep(groupsData);
     const checkInGroupsData = findCheck(newGroupsData, currentContextId)
     if (checkInGroupsData) {
@@ -444,7 +449,7 @@ const Checker = ({
         const nextContextId = nextCheck?.contextId
         const newState = {
           currentCheckingData: newCheckData,
-          currentContextId,
+          currentCheck: checkInCheckingData,
           groupsData: newGroupsData,
           mode: 'default',
           modified: true,
@@ -452,10 +457,10 @@ const Checker = ({
           selections: newSelections,
         }
         setState(newState);
-        saveSelection && saveSelection(newState)
+        saveCheckSettings && saveCheckSettings(newState)
 
         if (nextContextId) {
-          changeCurrentContextId(nextCheck, true)
+          changeCurrentCheck(nextCheck, true)
         }
       }
     }
@@ -664,7 +669,7 @@ const Checker = ({
       <div id='checker' style={_checkerStyles}>
         <GroupMenuComponent
           bookName={bookName}
-          changeCurrentContextId={changeCurrentContextId}
+          changeCurrentContextId={changeCurrentCheck}
           contextId={currentContextId}
           direction={direction}
           groupsData={groupsData}
@@ -706,59 +711,56 @@ const Checker = ({
               showSeeMoreButton={false}
               title={groupTitle}
             />
-            <div style={{ display: 'flex', flexDirection: 'column', flexGrow: 1, height: '100%', width: '100%' }}>
-              <CheckArea
-                alignedGLText={alignedGLText}
-                bookDetails={bookDetails}
-                changeSelectionsInLocalState={changeSelectionsInLocalState}
-                checkIfCommentChanged={checkIfCommentChanged}
-                checkIfVerseChanged={checkIfVerseChanged}
-                comment={commentText}
-                contextId={currentContextId}
-                handleComment={handleComment}
-                handleEditVerse={handleEditVerse}
-                handleTagsCheckbox={handleTagsCheckbox}
-                isVerseChanged={isVerseChanged}
-                invalidated={isVerseInvalidated}
-                maximumSelections={maximumSelections}
-                mode={mode}
-                newSelections={newSelections}
-                nothingToSelect={nothingToSelect}
-                openAlertDialog={openAlertDialog}
-                setToolSettings={setToolSettings}
-                selections={selections}
-                tags={tags}
-                targetBible={targetBible}
-                targetLanguageDetails={targetLanguageDetails}
-                targetLanguageFont={targetLanguageFont}
-                translate={translate}
-                toolsSettings={toolsSettings}
-                unfilteredVerseText={unfilteredVerseText}
-                verseText={verseText}
-                validateSelections={validateSelections}
-              />
-              <ActionsArea
-                bookmarkEnabled={bookmarkEnabled}
-                cancelComment={cancelComment}
-                cancelEditVerse={cancelEditVerse}
-                cancelSelection={cancelSelection}
-                changeMode={changeMode}
-                clearSelection={clearSelection}
-                isCommentChanged={isCommentChanged}
-                localNothingToSelect={localNothingToSelect}
-                mode={mode}
-                newSelections={newSelections}
-                nothingToSelect={nothingToSelect}
-                saveComment={saveComment}
-                saveEditVerse={saveEditVerse}
-                saveSelection={_saveSelection}
-                selections={selections}
-                tags={tags}
-                toggleNothingToSelect={toggleNothingToSelect}
-                translate={translate}
-                toggleBookmark={toggleBookmark}
-              />
-            </div>
+            <VerseCheck
+              alignedGLText={alignedGLText}
+              bookDetails={bookDetails}
+              bookmarkEnabled={bookmarkEnabled}
+              cancelEditVerse={cancelEditVerse}
+              cancelComment={cancelComment}
+              cancelSelection={cancelSelection}
+              changeMode={changeMode}
+              changeSelectionsInLocalState={changeSelectionsInLocalState}
+              checkIfCommentChanged={checkIfCommentChanged}
+              checkIfVerseChanged={checkIfVerseChanged}
+              clearSelection={clearSelection}
+              commentText={commentText}
+              contextId={currentContextId}
+              dialogModalVisibility = {false}
+              isCommentChanged={isCommentChanged}
+              isVerseChanged={isVerseChanged}
+              isVerseEdited={isVerseEdited}
+              handleEditVerse={handleEditVerse}
+              handleGoToNext={null}
+              handleGoToPrevious={null}
+              handleOpenDialog={null}
+              isVerseInvalidated={isVerseInvalidated}
+              handleCloseDialog={null}
+              handleComment={handleComment}
+              handleSkip={null}
+              handleTagsCheckbox={handleTagsCheckbox}
+              localNothingToSelect={localNothingToSelect}
+              manifest={manifest}
+              maximumSelections={maximumSelections}
+              mode={mode}
+              newSelections={newSelections}
+              nothingToSelect={nothingToSelect}
+              openAlertDialog={openAlertDialog}
+              saveComment={saveComment}
+              saveEditVerse={saveEditVerse}
+              saveSelection={_saveSelection}
+              selections={selections}
+              setToolSettings={setToolSettings}
+              tags={tags}
+              targetBible={targetBible}
+              targetLanguageDetails={targetLanguageDetails}
+              toggleBookmark={toggleBookmark}
+              toggleNothingToSelect={toggleNothingToSelect}
+              toolsSettings={toolsSettings}
+              translate={translate}
+              unfilteredVerseText={unfilteredVerseText}
+              validateSelections={validateSelections}
+              verseText={verseText}
+            />
           </div>
         </div>
         {showDocument && <TranslationHelps
@@ -792,7 +794,7 @@ Checker.propTypes = {
   glWordsData: PropTypes.object.isRequired,
   getLexiconData: PropTypes.func,
   initialSettings: PropTypes.object,
-  saveSelection: PropTypes.func,
+  saveCheckSettings: PropTypes.func,
   saveSettings: PropTypes.func,
   showDocument: PropTypes.bool,
   targetBible: PropTypes.object.isRequired,
