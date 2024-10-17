@@ -71,7 +71,7 @@ const Checker = ({
   getLexiconData,
   glWordsData,
   initialSettings,
-  saveCheckSettings,
+  saveCheckingData,
   saveSettings,
   showDocument,
   styles,
@@ -457,7 +457,7 @@ const Checker = ({
           selections: newSelections,
         }
         setState(newState);
-        saveCheckSettings && saveCheckSettings(newState)
+        saveCheckingData && saveCheckingData(newState)
 
         if (nextContextId) {
           changeCurrentCheck(nextCheck, true)
@@ -794,7 +794,7 @@ Checker.propTypes = {
   glWordsData: PropTypes.object.isRequired,
   getLexiconData: PropTypes.func,
   initialSettings: PropTypes.object,
-  saveCheckSettings: PropTypes.func,
+  saveCheckingData: PropTypes.func,
   saveSettings: PropTypes.func,
   showDocument: PropTypes.bool,
   targetBible: PropTypes.object.isRequired,
