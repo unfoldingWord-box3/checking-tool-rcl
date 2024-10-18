@@ -103,9 +103,11 @@ const Checker = ({
     groupPhrase: '',
     groupsData: null,
     groupsIndex: null,
+    isCommentChanged: false,
     localNothingToSelect: false,
     mode: 'default',
     modified: false,
+    newComment: '',
     newSelections: null,
     nothingToSelect: false,
     popoverProps: {
@@ -128,8 +130,10 @@ const Checker = ({
     groupsData,
     groupsIndex,
     localNothingToSelect,
+    isCommentChanged,
     mode,
     modified,
+    newComment,
     newSelections,
     nothingToSelect,
     popoverProps,
@@ -143,7 +147,7 @@ const Checker = ({
     _setState(prevState => ({ ...prevState, ...newState }))
   }
 
-  function updateMode(newSelections) {
+  function updateModeForSelections(newSelections) {
     const noSelections = (!newSelections.length)
     const newMode = noSelections ? 'select' : 'default'
     setState({
@@ -187,7 +191,7 @@ const Checker = ({
 
       if (flattenedGroupData && check?.contextId) {
         updateContext(check, groupsIndex)
-        updateMode(newSelections)
+        updateModeForSelections(newSelections)
       }
     }
   }, [contextId, checkingData, glWordsData]);
@@ -261,9 +265,6 @@ const Checker = ({
   const gatewayLanguageId = targetLanguageDetails?.gatewayLanguageId
   const gatewayLanguageOwner = targetLanguageDetails?.gatewayLanguageOwner
 
-  const handleComment = () => {
-    console.log(`${name}-handleComment`)
-  }
   const isVerseChanged = false;
   const setToolSettings = (NAMESPACE, fieldName, fieldValue) => {
     console.log(`${name}-setToolSettings ${fieldName}=${fieldValue}`)
@@ -419,7 +420,7 @@ const Checker = ({
             newSelections,
             selections: newSelections,
           })
-          updateMode(newSelections)
+          updateModeForSelections(newSelections)
         }
       }
     } else {
@@ -429,7 +430,6 @@ const Checker = ({
   const direction = 'ltr'
 
   const currentContextId = currentCheck?.contextId
-  const isCommentChanged = currentCheck?.comments
   const bookmarkEnabled = currentCheck?.reminders
   const isVerseEdited = currentCheck?.verseEdits
 
@@ -465,6 +465,33 @@ const Checker = ({
       }
     }
   }
+
+  const _saveData = (key, value) => {
+    console.log(`${name}-saveSelection persist to file`)
+    const newGroupsData = _.cloneDeep(groupsData);
+    const checkInGroupsData = findCheck(newGroupsData, currentContextId)
+    if (checkInGroupsData) {
+      //save the selection changes
+      const category = checkInGroupsData.category
+      const newCheckData = _.cloneDeep(currentCheckingData);
+      const checkInCheckingData = findCheck(newCheckData[category], currentContextId, false)
+      if (checkInCheckingData) {
+        checkInCheckingData[kwy] = value
+        checkInGroupsData[kwy] = value
+        const newState = {
+          currentCheckingData: newCheckData,
+          currentCheck: checkInCheckingData,
+          groupsData: newGroupsData,
+          mode: 'default',
+          modified: true,
+          selections: newSelections,
+        }
+        setState(newState);
+        saveCheckingData && saveCheckingData(newState)
+      }
+    }
+  }
+
   const cancelSelection = () => {
     console.log(`${name}-cancelSelection`)
     setState({
@@ -472,29 +499,54 @@ const Checker = ({
       mode: 'default'
     });
   }
+
   const clearSelection = () => {
     console.log(`${name}-clearSelection`)
     setState({ newSelections: [] });
   }
+
   const toggleBookmark = () => {
     console.log(`${name}-toggleBookmark`)
+    _saveData('reminders', !currentCheck?.reminders)
   }
+
   const changeMode = (mode) => {
     console.log(`${name}-changeMode`, mode)
     setState({ mode })
   }
+
   const cancelEditVerse = () => {
     console.log(`${name}-cancelEditVerse`)
   }
+
   const saveEditVerse = () => {
     console.log(`${name}-saveEditVerse`)
   }
+
   const cancelComment = () => {
     console.log(`${name}-cancelComment`)
+    setState({
+      mode: 'default',
+      newComment: '',
+      isCommentChanged: false,
+    });
   }
   const saveComment = () => {
     console.log(`${name}-saveComment`)
+    _saveData('comments', newComment)
+    setState({
+      mode: 'default',
+      newComment: '',
+      isCommentChanged: false,
+    });
   }
+
+  const handleComment = () => {
+    e.preventDefault();
+    console.log(`${name}-handleComment`)
+    setState({ newComment: e.target.value });
+  }
+
   const readyToDisplayChecker = groupsData && groupsIndex && currentContextId && verseText
 
   const getLexiconData_ = (lexiconId, entryId) => {
@@ -641,7 +693,8 @@ const Checker = ({
       paneSettings: _paneSettings,
       paneKeySettings: _paneKeySettings,
       toolsSettings: _toolsSettings,
-      manifest: _manifest
+      manifest: _manifest,
+      newComment: '',
     }, false)
   }
 
