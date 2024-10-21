@@ -1,9 +1,5 @@
-import React, {
-  useEffect,
-  useMemo,
-  useState
-} from 'react'
-import PropTypes from 'prop-types';
+import React, { useEffect, useMemo, useState } from 'react'
+import PropTypes from 'prop-types'
 import _ from 'lodash'
 import GroupMenuComponent from './GroupMenuComponent'
 import { getBestVerseFromBook } from '../helpers/verseHelpers'
@@ -23,7 +19,7 @@ import CheckInfoCard from '../tc_ui_toolkit/CheckInfoCard'
 import { parseTnToIndex } from '../helpers/translationHelps/tnArticleHelpers'
 import ScripturePane from '../tc_ui_toolkit/ScripturePane'
 import PopoverContainer from '../containers/PopoverContainer'
-import { isNT, NT_ORIG_LANG, OT_ORIG_LANG } from '../common/BooksOfTheBible'
+import { NT_ORIG_LANG, OT_ORIG_LANG } from '../common/BooksOfTheBible'
 import complexScriptFonts from '../common/complexScriptFonts'
 import TranslationHelps from '../tc_ui_toolkit/TranslationHelps'
 import * as tHelpsHelpers from '../helpers/tHelpsHelpers'
@@ -104,12 +100,15 @@ const Checker = ({
     groupsData: null,
     groupsIndex: null,
     isCommentChanged: false,
+    isVerseChanged: false,
     mode: 'default',
+    newVerseText: null,
     popoverProps: {
       popoverVisibility: false
     },
     showHelpsModal: false,
     showHelps: true,
+    newTags: null,
     verseText: '',
   })
 
@@ -123,10 +122,13 @@ const Checker = ({
     groupsData,
     groupsIndex,
     isCommentChanged,
+    isVerseChanged,
     mode,
+    newVerseText,
     popoverProps,
     showHelpsModal,
     showHelps,
+    newTags,
     verseText,
   } = state
 
@@ -162,36 +164,44 @@ const Checker = ({
   }
 
   useEffect(() => {
-    if (contextId && checkingData && glWordsData) {
-      let flattenedGroupData = null
-      let groupsIndex = null
-      if (checkingData) {
-        flattenedGroupData = flattenGroupData(checkingData)
-      }
-
-      const check = findCheck(flattenedGroupData, contextId, true)
-      if (glWordsData) {
-        if (checkType === translationNotes) {
-          groupsIndex = parseTnToIndex(glWordsData)
-        } else {
-          groupsIndex = parseTwToIndex(glWordsData)
+    const haveData = contextId?.reference && checkingData && Object.keys(checkingData).length && glWordsData && Object.keys(glWordsData).length
+    if (haveData) {
+      const oldBook = currentContextId?.reference?.bookId
+      const oldCheckType = currentContextId?.tool
+      const newBook = contextId?.reference?.bookId
+      const newCheckType = contextId?.tool
+      const changedType = oldBook !== newBook || oldCheckType != newCheckType
+      if (changedType) {
+        let flattenedGroupData = null
+        let groupsIndex = null
+        if (checkingData) {
+          flattenedGroupData = flattenGroupData(checkingData)
         }
-      }
 
-      const newState = {
-        groupsData: flattenedGroupData,
-        groupsIndex,
-        currentCheckingData: checkingData,
-        check,
-        modified: false,
-        isCommentChanged: false,
-      }
+        if (glWordsData) {
+          if (checkType === translationNotes) {
+            groupsIndex = parseTnToIndex(glWordsData)
+          } else {
+            groupsIndex = parseTwToIndex(glWordsData)
+          }
+        }
 
-      setState(newState)
+        const check = findCheck(flattenedGroupData, contextId, true)
+        const newState = {
+          groupsData: flattenedGroupData,
+          groupsIndex,
+          currentCheckingData: checkingData,
+          currentCheck: check,
+          modified: false,
+          isCommentChanged: false,
+        }
 
-      if (flattenedGroupData && check?.contextId) {
-        updateContext(check, groupsIndex)
-        updateModeForSelections(check?.selections, check?.nothingToSelect)
+        setState(newState)
+
+        if (flattenedGroupData && check?.contextId) {
+          updateContext(check, groupsIndex)
+          updateModeForSelections(check?.selections, check?.nothingToSelect)
+        }
       }
     }
   }, [contextId, checkingData, glWordsData]);
@@ -253,7 +263,6 @@ const Checker = ({
     })
   }
 
-  const tags = [];
   const commentText = getCurrentValueFor('comments') || ''
   const bookId = targetLanguageDetails?.book?.id
   const bookName = targetLanguageDetails?.book?.name
@@ -262,8 +271,9 @@ const Checker = ({
     name: bookName
   };
   const gatewayLanguageId = targetLanguageDetails?.gatewayLanguageId
+  const targetLanguageFont = manifest?.projectFont || ''
+  const currentContextId = currentCheck?.contextId
 
-  const isVerseChanged = false;
   const setToolSettings = (NAMESPACE, fieldName, fieldValue) => {
     console.log(`${name}-setToolSettings ${fieldName}=${fieldValue}`)
     if (toolsSettings) {
@@ -354,8 +364,38 @@ const Checker = ({
   const openAlertDialog = () => {
     console.log(`${name}-openAlertDialog`)
   }
-  const handleEditVerse = () => {
+
+  const checkIfVerseChanged = (e) => {
+    console.log(`${name}-checkIfVerseChanged`)
+    const _newVerseText = e.target.value
+    const _isVerseChanged = _newVerseText !== verseText
+    setState({ isVerseChanged: _isVerseChanged });
+  }
+
+  const handleEditVerse = (e) => {
     console.log(`${name}-handleEditVerse`)
+    const _newVerseText = e.target.value
+    setState({ newVerseText: _newVerseText });
+  }
+
+  const cancelEditVerse = () => {
+    console.log(`${name}-cancelEditVerse`)
+    setState({ newVerseText: null, newTags: [], mode: "default" });
+  }
+
+  const saveEditVerse = () => {
+    console.log(`${name}-saveEditVerse`)
+    const { chapter, verse } = currentContextId.reference;
+    const verseRef = currentContextId.verseSpan || verse; // if in verse span, use it
+    const before = targetBible[chapter][verseRef];
+
+    setState({
+      newVerseText: null,
+      newTags: [],
+      mode: "default",
+      isVerseChanged: false,
+    });
+    editTargetVerse(chapter, verseRef, before, newVerseText, newTags);
   }
 
   function handleGoToNext() {
@@ -372,15 +412,27 @@ const Checker = ({
 
   const maximumSelections = 10
   const isVerseInvalidated = false
-  const handleTagsCheckbox = () => {
-    console.log(`${name}-handleTagsCheckbox`)
+
+  const handleTagsCheckbox = (tag) => {
+    console.log(`${name}-handleTagsCheckbox`, tag)
+    const currentTags = newTags || []
+    const tagIndex = currentTags.indexOf(tag);
+    let _newTags;
+
+    if (tagIndex > -1) {
+      const copy = currentTags.slice(0);
+      copy.splice(tagIndex, 1);
+      _newTags = copy;
+    } else {
+      _newTags = [...currentTags, tag];
+    }
+
+    setState({ newTags: _newTags });
   }
+
   const validateSelections = (selections_) => {
     console.log(`${name}-validateSelections`, selections_)
   }
-
-  const targetLanguageFont = manifest?.projectFont || ''
-  const currentContextId = currentCheck?.contextId
 
   const unfilteredVerseText = useMemo(() => {
     let unfilteredVerseText_ = ''
@@ -399,21 +451,6 @@ const Checker = ({
 
     return unfilteredVerseText_
   }, [targetBible, currentContextId])
-
-  const checkIfVerseChanged = () => {
-    console.log(`${name}-checkIfVerseChanged`)
-  }
-
-  function checkIfCommentChanged(e) {
-    console.log(`${name}-checkIfCommentChanged`)
-    const newcomment = e.target.value || '';
-    const oldcomment = commentText || '';
-    const isCommentChanged = newcomment !== oldcomment
-
-    setState({
-      isCommentChanged
-    });
-  }
 
   const setTempCheckingItem = (key, value) => {
     const newCheckingData = tempCheckingData ? {...tempCheckingData} : {}
@@ -452,7 +489,7 @@ const Checker = ({
   const direction = 'ltr'
 
   const bookmarkEnabled = currentCheck?.reminders
-  const isVerseEdited = currentCheck?.verseEdits
+  const isVerseEdited = !!currentCheck?.verseEdits
 
   const _saveSelection = () => {
     console.log(`${name}-_saveSelection persist to file`)
@@ -556,12 +593,15 @@ const Checker = ({
     setState({ mode })
   }
 
-  const cancelEditVerse = () => {
-    console.log(`${name}-cancelEditVerse`)
-  }
+  function checkIfCommentChanged(e) {
+    console.log(`${name}-checkIfCommentChanged`)
+    const newcomment = e.target.value || '';
+    const oldcomment = commentText || '';
+    const isCommentChanged = newcomment !== oldcomment
 
-  const saveEditVerse = () => {
-    console.log(`${name}-saveEditVerse`)
+    setState({
+      isCommentChanged
+    });
   }
 
   const cancelComment = () => {
@@ -667,12 +707,7 @@ const Checker = ({
     const targetChapter = {...targetBook[chapter]}
     targetBook[chapter] = targetChapter
     targetChapter[verse] = newVerseText
-    updateSettings(_bibles, targetBook)
 
-    const verseText = removeUsfmMarkers(newVerseText)
-    setState({
-      verseText
-    })
 
     //////////////////////////////////
     // now apply new verse text to selected aligned verse and call back to extension to save
@@ -685,6 +720,14 @@ const Checker = ({
     const currentChapterData = targetBible?.[chapter]
     const currentVerseData = currentChapterData?.[verse]
     const { targetVerseObjects } = AlignmentHelpers.updateAlignmentsToTargetVerse(currentVerseData, _newVerseText)
+    targetChapter[verse] = { verseObjects: targetVerseObjects }; // save
+
+    updateSettings(_bibles, targetBook)
+
+    const verseText = removeUsfmMarkers(_newVerseText)
+    setState({
+      verseText
+    })
 
     changeTargetVerse && changeTargetVerse(chapter, verse, newVerseText, targetVerseObjects)
   }
@@ -849,7 +892,7 @@ const Checker = ({
               saveSelection={_saveSelection}
               selections={currentSelections}
               setToolSettings={setToolSettings}
-              tags={tags}
+              tags={newTags || []}
               targetBible={targetBible}
               targetLanguageDetails={targetLanguageDetails}
               toggleBookmark={toggleBookmark}
