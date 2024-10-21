@@ -12,6 +12,7 @@ import isEqual from 'deep-equal'
 import {
   findCheck,
   findNextCheck,
+  findPreviousCheck,
   flattenGroupData,
   getAlignedGLText,
   getPhraseFromTw,
@@ -92,7 +93,7 @@ const Checker = ({
   const [bibles, setBibles] = useState({ })
   const [targetBible, setTargetBible] = useState(targetBible_)
   const [tempCheckingData, setTempCheckingData] = useState(null)
-  const [changedCheckingData, setChangedCheckingData] = useState(null)
+  const [localCheckingData, setLocalCheckingData] = useState(null)
   const [state, _setState] = useState({
     alignedGLText: '',
     article: null,
@@ -134,8 +135,8 @@ const Checker = ({
   }
 
   function getCurrentValueFor(key) {
-    if (changedCheckingData?.hasOwnProperty(key)) {
-      return changedCheckingData[key]
+    if (localCheckingData?.hasOwnProperty(key)) {
+      return localCheckingData[key]
     }
     return currentCheck?.[key]
   }
@@ -356,6 +357,19 @@ const Checker = ({
   const handleEditVerse = () => {
     console.log(`${name}-handleEditVerse`)
   }
+
+  function handleGoToNext() {
+    console.log(`${name}-handleGoToNext`)
+    const nextCheck = findNextCheck(groupsData, currentContextId, false)
+    changeCurrentCheck(nextCheck, true)
+  }
+
+  function handleGoToPrevious() {
+    console.log(`${name}-handleGoToPrevious`)
+    const previousCheck = findPreviousCheck(groupsData, currentContextId, false)
+    changeCurrentCheck(previousCheck, true)
+  }
+
   const maximumSelections = 10
   const isVerseInvalidated = false
   const handleTagsCheckbox = () => {
@@ -426,7 +440,7 @@ const Checker = ({
         let check = findCheck(groupsData, newContextId, false)
         updateContext(newContext)
         if (check) {
-          setChangedCheckingData(null)
+          setLocalCheckingData(null)
           setTempCheckingData(null)
           updateModeForSelections(check.selections, check.nothingToSelect)
         }
@@ -442,80 +456,72 @@ const Checker = ({
 
   const _saveSelection = () => {
     console.log(`${name}-_saveSelection persist to file`)
-    const newGroupsData = _.cloneDeep(groupsData);
-    const checkInGroupsData = findCheck(newGroupsData, currentContextId)
-    if (checkInGroupsData) {
-      //save the selection changes
-      const category = checkInGroupsData.category
-      const newCheckData = _.cloneDeep(currentCheckingData);
-      const checkInCheckingData = findCheck(newCheckData[category], currentContextId, false)
-      if (checkInCheckingData) {
-        const _selections = tempNothingToSelect ? [] : tempSelections
-        checkInCheckingData.selections = _selections
-        checkInGroupsData.selections = _selections
-        checkInCheckingData.nothingToSelect = tempNothingToSelect
-        checkInGroupsData.nothingToSelect = tempNothingToSelect
-        const nextCheck = findNextCheck(groupsData, currentContextId, false)
-        const nextContextId = nextCheck?.contextId
-        const newState = {
-          currentCheckingData: newCheckData,
-          currentCheck: checkInCheckingData,
-          groupsData: newGroupsData,
-          mode: 'default',
-          modified: true,
-          nextContextId,
-        }
+    const { checkInGroupsData, _currentCheck, newState, _newCheckingData } = cloneDataForSaving()
 
-        const _newCheckingData = changedCheckingData ? {...changedCheckingData} : {}
-        if (tempNothingToSelect) {
-          _newCheckingData.nothingToSelect = tempNothingToSelect
-          _newCheckingData.selections = false
-        } else {
-          _newCheckingData.nothingToSelect = false
-          _newCheckingData.selections = _selections
-        }
-        setChangedCheckingData(_newCheckingData)
-        deleteTempCheckingData('nothingToSelect')
-        deleteTempCheckingData('selections')
-
-        setState(newState);
-        saveCheckingData && saveCheckingData(newState)
-
-        if (nextContextId) {
-          changeCurrentCheck(nextCheck, true)
-        }
+    if (_currentCheck && newState) {
+      if (tempNothingToSelect) {
+        _newCheckingData.nothingToSelect = tempNothingToSelect
+        _newCheckingData.selections = false
+      } else {
+        _newCheckingData.nothingToSelect = false
+        _newCheckingData.selections = tempSelections
       }
+
+      setLocalCheckingData(_newCheckingData)
+      deleteTempCheckingData('nothingToSelect')
+      deleteTempCheckingData('selections')
+
+      updateValuesInCheckData(_currentCheck, checkInGroupsData, _newCheckingData)
+
+      setState(newState);
+      saveCheckingData && saveCheckingData(newState)
+    }
+  }
+
+  function cloneDataForSaving() {
+    const _groupsData = _.cloneDeep(groupsData)
+    const checkInGroupsData = findCheck(_groupsData, currentContextId)
+    let _currentCheck
+    let newState
+    let _newCheckingData
+    if (checkInGroupsData) {
+      // save the selection changes
+      const category = checkInGroupsData.category
+      const newCheckData = _.cloneDeep(currentCheckingData)
+      _currentCheck = findCheck(newCheckData[category], currentContextId, false)
+      newState = {
+        currentCheckingData: newCheckData,
+        currentCheck: _currentCheck,
+        groupsData: _groupsData,
+        mode: 'default',
+        modified: true
+      }
+      _newCheckingData = localCheckingData ? {...localCheckingData} : {}
+    }
+    return { checkInGroupsData, _currentCheck, newState, _newCheckingData }
+  }
+
+  function updateValuesInCheckData(_currentCheck, checkInGroupsData, _newCheckingData) {
+    for (const key of Object.keys(_newCheckingData)) {
+      const newCheckingValue = _newCheckingData[key]
+      _currentCheck[key] = newCheckingValue
+      checkInGroupsData[key] = newCheckingValue
     }
   }
 
   const _saveData = (key, value) => {
     console.log(`${name}-_saveData persist to file`)
-    const newGroupsData = _.cloneDeep(groupsData);
-    const checkInGroupsData = findCheck(newGroupsData, currentContextId)
-    if (checkInGroupsData) {
-      // save the selection changes
-      const category = checkInGroupsData.category
-      const newCheckData = _.cloneDeep(currentCheckingData);
-      const checkInCheckingData = findCheck(newCheckData[category], currentContextId, false)
-      if (checkInCheckingData) {
-        checkInCheckingData[key] = value
-        checkInGroupsData[key] = value
-        const newState = {
-          currentCheckingData: newCheckData,
-          currentCheck: checkInCheckingData,
-          groupsData: newGroupsData,
-          mode: 'default',
-          modified: true,
-        }
+    const { checkInGroupsData, _currentCheck, newState, _newCheckingData } = cloneDataForSaving()
 
-        const _newCheckingData = changedCheckingData ? {...changedCheckingData} : {}
-        _newCheckingData[key] = value
-        setChangedCheckingData(_newCheckingData)
-        deleteTempCheckingData(key)
+    if (_currentCheck && newState) {
+      _newCheckingData[key] = value
+      setLocalCheckingData(_newCheckingData)
+      deleteTempCheckingData(key)
 
-        setState(newState);
-        saveCheckingData && saveCheckingData(newState)
-      }
+      updateValuesInCheckData(_currentCheck, checkInGroupsData, _newCheckingData)
+
+      setState(newState);
+      saveCheckingData && saveCheckingData(newState)
     }
   }
 
@@ -823,8 +829,8 @@ const Checker = ({
               isVerseChanged={isVerseChanged}
               isVerseEdited={isVerseEdited}
               handleEditVerse={handleEditVerse}
-              handleGoToNext={null}
-              handleGoToPrevious={null}
+              handleGoToNext={handleGoToNext}
+              handleGoToPrevious={handleGoToPrevious}
               handleOpenDialog={null}
               isVerseInvalidated={isVerseInvalidated}
               handleCloseDialog={null}
