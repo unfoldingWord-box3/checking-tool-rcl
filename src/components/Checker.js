@@ -488,8 +488,8 @@ const Checker = ({
   }
   const direction = 'ltr'
 
-  const bookmarkEnabled = currentCheck?.reminders
-  const isVerseEdited = !!currentCheck?.verseEdits
+  const bookmarkEnabled = getCurrentValueFor('reminders')
+  const isVerseEdited = !!getCurrentValueFor('verseEdits')
 
   const _saveSelection = () => {
     console.log(`${name}-_saveSelection persist to file`)
@@ -730,6 +730,7 @@ const Checker = ({
     })
 
     changeTargetVerse && changeTargetVerse(chapter, verse, newVerseText, targetVerseObjects)
+    _saveData('verseEdits', true)
   }
 
   function updateSettings(newBibles, targetBible) {
