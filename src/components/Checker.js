@@ -164,7 +164,7 @@ const Checker = ({
   }
 
   useEffect(() => {
-    const haveData = contextId?.reference && checkingData && Object.keys(checkingData).length && glWordsData && Object.keys(glWordsData).length
+    const haveData = checkingData && Object.keys(checkingData).length && glWordsData && Object.keys(glWordsData).length
     if (haveData) {
       const oldBook = currentContextId?.reference?.bookId
       const oldCheckType = currentContextId?.tool
