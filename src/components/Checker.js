@@ -171,7 +171,7 @@ const Checker = ({
       const newBook = contextId?.reference?.bookId
       const newCheckType = contextId?.tool
       const changedType = oldBook !== newBook || oldCheckType != newCheckType
-      if (changedType) {
+      if (changedType || !contextId?.reference) {
         let flattenedGroupData = null
         let groupsIndex = null
         if (checkingData) {
