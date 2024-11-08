@@ -3,7 +3,7 @@ import { checkSelectionOccurrences } from 'selections';
 import isEqual from 'deep-equal'
 import { getUsfmForVerseContent } from '../helpers/UsfmFileConversionHelpers'
 import { getVerses } from 'bible-reference-range'
-import { delay } from '../helpers/utils'
+import { delay } from '../tc_ui_toolkit/ScripturePane/helpers/utils'
 
 /**
  *
