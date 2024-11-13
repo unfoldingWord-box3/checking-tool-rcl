@@ -10,7 +10,7 @@ import {
   getTitleStr,
   getTitleWithId,
   isLTR,
-} from '../../../helpers/utils';
+} from '../../ScripturePane/helpers/utils';
 // styling
 import '../VerseCheck.styles.css';
 const NAMESPACE = 'CheckArea';

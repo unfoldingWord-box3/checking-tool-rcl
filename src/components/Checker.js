@@ -27,6 +27,7 @@ import { getUsfmForVerseContent } from '../helpers/UsfmFileConversionHelpers'
 import * as AlignmentHelpers from '../utils/alignmentHelpers'
 import * as UsfmFileConversionHelpers from '../utils/UsfmFileConversionHelpers'
 import VerseCheck from '../tc_ui_toolkit/VerseCheck'
+import { validateAllSelectionsForVerse, validateVerseSelections } from '../utils/selectionsHelpers'
 
 const localStyles = {
   containerDiv:{
@@ -196,6 +197,12 @@ const Checker = ({
       if (flattenedGroupData && check?.contextId) {
         updateContext(check, groupsIndex)
         updateModeForSelections(check?.selections, check?.nothingToSelect)
+
+        //TDOD: validate all checks
+        // validateAllSelections(targetBible, groupsIndex, (invalidatedCheck) => {
+        //
+        //
+        // })
       }
     }
   }, [contextId, checkingData, glWordsData]);
@@ -390,6 +397,13 @@ const Checker = ({
       isVerseChanged: false,
     });
     editTargetVerse(chapter, verseRef, before, newVerseText, newTags);
+
+    validateAllSelectionsForVerse(targetVerse, bookId, chapter, verse, groupsIndex, (invalidatedCheck) => {
+      if (invalidatedCheck) {
+        console.log(`${name}-saveEditVerse - check invalidated`, invalidatedCheck)
+        _saveData('invalidated', true)
+      }
+    })
   }
 
   function handleGoToNext() {
@@ -405,7 +419,6 @@ const Checker = ({
   }
 
   const maximumSelections = 10
-  const isVerseInvalidated = false
 
   const handleTagsCheckbox = (tag) => {
     console.log(`${name}-handleTagsCheckbox`, tag)
@@ -426,6 +439,7 @@ const Checker = ({
 
   const validateSelections = (selections_) => {
     console.log(`${name}-validateSelections`, selections_)
+    validateVerseSelections(verseText, selections_)
   }
 
   const unfilteredVerseText = useMemo(() => {
@@ -484,6 +498,7 @@ const Checker = ({
 
   const bookmarkEnabled = getCurrentValueFor('reminders')
   const isVerseEdited = !!getCurrentValueFor('verseEdits')
+  const isVerseInvalidated = !!getCurrentValueFor('invalidated')
 
   const _saveSelection = () => {
     console.log(`${name}-_saveSelection persist to file`)

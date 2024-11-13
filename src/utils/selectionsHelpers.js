@@ -6,12 +6,28 @@ import { getVerses } from 'bible-reference-range'
 import { delay } from '../tc_ui_toolkit/ScripturePane/helpers/utils'
 
 /**
- *
- * @param {String} filteredTargetVerse - target bible verse.
+ * validata selections in verse string or object
+ * @param {String|object} targetVerse - target bible verse.
  * @param {array} selections - array of selection objects [Obj,...]
  * @returns {boolean}
  */
-export function validateVerseSelections(filteredTargetVerse, selections) {
+export function validateVerseSelections(targetVerse, selections) {
+  if (typeof targetVerse !== 'string') {
+    targetVerse = getUsfmForVerseContent(targetVerse)
+  }
+  const filtered = usfm.removeMarker(targetVerse); // remove USFM markers
+  const selectionsChanged = _validateVerseSelections(filtered, selections)
+  return selectionsChanged
+}
+
+
+/**
+ * validata selections in verse string
+ * @param {String} filteredTargetVerse - target bible verse as string.
+ * @param {array} selections - array of selection objects [Obj,...]
+ * @returns {boolean}
+ */
+function _validateVerseSelections(filteredTargetVerse, selections) {
   const validSelections = checkSelectionOccurrences(filteredTargetVerse, selections);
   const selectionsChanged = (selections.length !== validSelections.length);
   return selectionsChanged
@@ -49,7 +65,7 @@ export const validateAllSelectionsForVerse = (targetVerse, bookId, chapter, vers
           filtered = usfm.removeMarker(targetVerse); // remove USFM markers
         }
 
-        const selectionsChanged = validateVerseSelections(filtered, selections);
+        const selectionsChanged = _validateVerseSelections(filtered, selections);
         if (selectionsChanged) {
           invalidateCheckCallback && invalidateCheckCallback(checkingOccurrence)
           _selectionsChanged = true
@@ -70,6 +86,7 @@ export const validateAllSelectionsForVerse = (targetVerse, bookId, chapter, vers
  */
 export async function validateAllSelections(targetBible,groupsIndex = null, invalidateCheckCallback = null)  {
   let _selectionsChanged = false;
+  const filteredVerses = {} // for caching verse content parsed to text
 
   for (let j = 0, lenGI = groupsIndex.length; j < lenGI; j++) {
     const checkingOccurrence = groupsIndex[j];
@@ -80,14 +97,18 @@ export async function validateAllSelections(targetBible,groupsIndex = null, inva
       const chapter = reference.chapter
       const verse = reference.verse
       const ref = `${chapter}:${verse}`
-      let targetVerse = getVerses(targetBible, ref);
-      if (targetVerse) {
+
+      let targetVerse = filteredVerses[ref]
+      if (!targetVerse) {
+        targetVerse = getVerses(targetBible, ref);
         if (typeof targetVerse !== 'string') {
           targetVerse = getUsfmForVerseContent(targetVerse)
         }
-        const filtered = usfm.removeMarker(targetVerse) // remove USFM markers
-
-        const selectionsChanged = validateVerseSelections(filtered, selections)
+        targetVerse = usfm.removeMarker(targetVerse) // remove USFM markers
+        filteredVerses[ref] = targetVerse
+      }
+      if (targetVerse) {
+        const selectionsChanged = _validateVerseSelections(targetVerse, selections)
         if (selectionsChanged) {
           invalidateCheckCallback && invalidateCheckCallback(checkingOccurrence)
           _selectionsChanged = true
