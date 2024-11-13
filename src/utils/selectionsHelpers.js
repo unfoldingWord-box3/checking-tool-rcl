@@ -1,9 +1,9 @@
 import usfm from 'usfm-js';
-import { checkSelectionOccurrences } from 'selections';
 import isEqual from 'deep-equal'
 import { getUsfmForVerseContent } from '../helpers/UsfmFileConversionHelpers'
 import { getVerses } from 'bible-reference-range'
 import { delay } from '../tc_ui_toolkit/ScripturePane/helpers/utils'
+import { checkSelectionOccurrences } from './selections'
 
 /**
  * validata selections in verse string or object
