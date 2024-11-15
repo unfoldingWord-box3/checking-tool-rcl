@@ -27,7 +27,12 @@ import { getUsfmForVerseContent } from '../helpers/UsfmFileConversionHelpers'
 import * as AlignmentHelpers from '../utils/alignmentHelpers'
 import * as UsfmFileConversionHelpers from '../utils/UsfmFileConversionHelpers'
 import VerseCheck from '../tc_ui_toolkit/VerseCheck'
-import { validateAllSelectionsForVerse, validateVerseSelections } from '../utils/selectionsHelpers'
+import {
+  validateAllSelections,
+  validateAllSelectionsForVerse,
+  validateVerseSelections
+} from '../utils/selectionsHelpers'
+import { delay } from '../tc_ui_toolkit/ScripturePane/helpers/utils'
 
 const localStyles = {
   containerDiv:{
@@ -198,11 +203,15 @@ const Checker = ({
         updateContext(check, groupsIndex)
         updateModeForSelections(check?.selections, check?.nothingToSelect)
 
-        //TDOD: validate all checks
-        // validateAllSelections(targetBible, groupsIndex, (invalidatedCheck) => {
-        //
-        //
-        // })
+        delay(100).then(() => {
+          // validate all checks
+          validateAllSelections(targetBible, groupsIndex, (invalidatedCheck) => {
+            if (invalidatedCheck) {
+              console.log(`${name}-saveEditVerse - check invalidated`, invalidatedCheck)
+              _saveData('invalidated', true)
+            }
+          })
+        })
       }
     }
   }, [contextId, checkingData, glWordsData]);
@@ -396,14 +405,7 @@ const Checker = ({
       mode: "default",
       isVerseChanged: false,
     });
-    editTargetVerse(chapter, verseRef, before, newVerseText, newTags);
-
-    validateAllSelectionsForVerse(targetVerse, bookId, chapter, verse, groupsIndex, (invalidatedCheck) => {
-      if (invalidatedCheck) {
-        console.log(`${name}-saveEditVerse - check invalidated`, invalidatedCheck)
-        _saveData('invalidated', true)
-      }
-    })
+    editTargetVerse(chapter, verseRef, before, newVerseText);
   }
 
   function handleGoToNext() {
@@ -437,9 +439,9 @@ const Checker = ({
     setState({ newTags: _newTags });
   }
 
-  const validateSelections = (selections_) => {
+  const validateSelections = (verseText_, selections_) => {
     console.log(`${name}-validateSelections`, selections_)
-    validateVerseSelections(verseText, selections_)
+    return validateVerseSelections(verseText_, selections_)
   }
 
   const unfilteredVerseText = useMemo(() => {
@@ -508,14 +510,17 @@ const Checker = ({
       if (tempNothingToSelect) {
         _newCheckingData.nothingToSelect = tempNothingToSelect
         _newCheckingData.selections = false
+        _newCheckingData.invalidated = false
       } else {
         _newCheckingData.nothingToSelect = false
         _newCheckingData.selections = tempSelections
+        _newCheckingData.invalidated = false
       }
 
       setLocalCheckingData(_newCheckingData)
       deleteTempCheckingData('nothingToSelect')
       deleteTempCheckingData('selections')
+      deleteTempCheckingData('invalidated')
 
       updateValuesInCheckData(_currentCheck, checkInGroupsData, _newCheckingData)
 
@@ -569,6 +574,36 @@ const Checker = ({
       setState(newState);
       saveCheckingData && saveCheckingData(newState)
     }
+  }
+
+  /**
+   * save changes to check data if not current check
+   * @param {object} check
+   * @param {string} key - key to change in check
+   * @param {any} value - value to change in check
+   * @private
+   */
+  const _saveCheckingData = (check, key, value) => {
+    console.log(`${name}-_saveCheckingData persist to file`, check)
+    const _groupsData = _.cloneDeep(groupsData)
+    const checkInGroupsData = findCheck(_groupsData, check?.contextId)
+
+    // update values for check
+    for (const key of Object.keys(check)) {
+      checkInGroupsData[key] = check[key]
+    }
+
+    checkInGroupsData[key] = value
+
+    const newState = {
+      groupsData: _groupsData,
+    }
+    setState(newState);
+
+    const newCheckingData = {
+      currentCheck: checkInGroupsData,
+    }
+    saveCheckingData && saveCheckingData(newCheckingData)
   }
 
   function deleteTempCheckingData(key) {
@@ -740,6 +775,13 @@ const Checker = ({
 
     changeTargetVerse && changeTargetVerse(chapter, verse, newVerseText, targetVerseObjects)
     _saveData('verseEdits', true)
+
+    validateAllSelectionsForVerse(newVerseText, bookId, chapter, verse, groupsData, (invalidatedCheck) => {
+      if (invalidatedCheck) {
+        console.log(`${name}-editTargetVerse - check invalidated`, invalidatedCheck)
+        _saveCheckingData(invalidatedCheck, 'invalidated', true)
+      }
+    })
   }
 
   function updateSettings(newBibles, targetBible) {
