@@ -45,7 +45,7 @@ function _validateVerseSelections(filteredTargetVerse, selections) {
  */
 export const validateAllSelectionsForVerse = (targetVerse, bookId, chapter, verse, groupsData = null, invalidateCheckCallback = null) => {
   let filtered = null;
-  let _selectionsChanged = false;
+  let _validationsChanged = false;
 
   const groupIds = Object.keys(groupsData)
   for (const groupId of groupIds) {
@@ -60,7 +60,8 @@ export const validateAllSelectionsForVerse = (targetVerse, bookId, chapter, vers
         verse
       }
 
-      if (isEqual(reference, checkingOccurrence.contextId?.reference)) {
+      const contextId = checkingOccurrence.contextId
+      if (isEqual(reference, contextId?.reference)) {
         if (selections && selections.length) {
           if (!filtered) { // for performance, we filter the verse only once and only if there is a selection
             if (typeof targetVerse !== 'string') {
@@ -70,15 +71,19 @@ export const validateAllSelectionsForVerse = (targetVerse, bookId, chapter, vers
           }
 
           const { selectionsChanged } = _validateVerseSelections(filtered, selections)
-          if (selectionsChanged) {
-            invalidateCheckCallback && invalidateCheckCallback(checkingOccurrence)
-            _selectionsChanged = true
+          if (!!contextId.invalidated !== !!selectionsChanged) {
+            _validationsChanged = true
           }
+          // callback
+          invalidateCheckCallback && invalidateCheckCallback(checkingOccurrence, selectionsChanged)
+        } else { // no selections, so not invalid
+          // callback
+          invalidateCheckCallback && invalidateCheckCallback(checkingOccurrence, false)
         }
       }
     }
   }
-  return _selectionsChanged
+  return _validationsChanged
 };
 
 /**

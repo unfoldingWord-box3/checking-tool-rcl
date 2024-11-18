@@ -208,7 +208,7 @@ const Checker = ({
           validateAllSelections(targetBible, groupsIndex, (invalidatedCheck) => {
             if (invalidatedCheck) {
               console.log(`${name}-saveEditVerse - check invalidated`, invalidatedCheck)
-              _saveData('invalidated', true)
+              _saveData({ invalidated: true })
             }
           })
         })
@@ -560,14 +560,21 @@ const Checker = ({
     }
   }
 
-  const _saveData = (key, value) => {
+  /**
+   * persist check changes to file
+   * @param {object} newData - new data to apply to check (key: valua)
+   * @private
+   */
+  const _saveData = (newData) => {
     console.log(`${name}-_saveData persist to file`)
     const { checkInGroupsData, _currentCheck, newState, _newCheckingData } = cloneDataForSaving()
 
     if (_currentCheck && newState) {
-      _newCheckingData[key] = value
+      for (const key of Object.keys(newData)) {
+        _newCheckingData[key] = newData[key]
+        deleteTempCheckingData(key)
+      }
       setLocalCheckingData(_newCheckingData)
-      deleteTempCheckingData(key)
 
       updateValuesInCheckData(_currentCheck, checkInGroupsData, _newCheckingData)
 
@@ -593,17 +600,19 @@ const Checker = ({
       checkInGroupsData[key] = check[key]
     }
 
-    checkInGroupsData[key] = value
+    if (checkInGroupsData[key] !== value) {
+      checkInGroupsData[key] = value
 
-    const newState = {
-      groupsData: _groupsData,
-    }
-    setState(newState);
+      const newState = {
+        groupsData: _groupsData,
+      }
+      setState(newState);
 
-    const newCheckingData = {
-      currentCheck: checkInGroupsData,
+      const newCheckingData = {
+        currentCheck: checkInGroupsData,
+      }
+      saveCheckingData && saveCheckingData(newCheckingData)
     }
-    saveCheckingData && saveCheckingData(newCheckingData)
   }
 
   function deleteTempCheckingData(key) {
@@ -629,7 +638,9 @@ const Checker = ({
 
   const toggleBookmark = () => {
     console.log(`${name}-toggleBookmark`)
-    _saveData('reminders', !getTempValueFor('reminders'))
+    _saveData({
+      reminders: !getTempValueFor('reminders')
+    })
   }
 
   const changeMode = (mode) => {
@@ -660,7 +671,7 @@ const Checker = ({
   const saveComment = () => {
     console.log(`${name}-saveComment`)
     const newComment = getTempValueFor('comments')
-    _saveData('comments', newComment)
+    _saveData({ comments: newComment })
     setState({
       mode: 'default',
       isCommentChanged: false,
@@ -774,12 +785,12 @@ const Checker = ({
     })
 
     changeTargetVerse && changeTargetVerse(chapter, verse, newVerseText, targetVerseObjects)
-    _saveData('verseEdits', true)
+    _saveData({ verseEdits: true })
 
-    validateAllSelectionsForVerse(newVerseText, bookId, chapter, verse, groupsData, (invalidatedCheck) => {
-      if (invalidatedCheck) {
-        console.log(`${name}-editTargetVerse - check invalidated`, invalidatedCheck)
-        _saveCheckingData(invalidatedCheck, 'invalidated', true)
+    validateAllSelectionsForVerse(newVerseText, bookId, chapter, verse, groupsData, (check, invalidated) => {
+      if (check) {
+        console.log(`${name}-editTargetVerse - check validated, state changed: invalid: ${invalidated}`, check)
+        _saveCheckingData(check, 'invalidated', invalidated)
       }
     })
   }
