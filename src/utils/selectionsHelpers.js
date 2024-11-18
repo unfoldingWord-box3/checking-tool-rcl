@@ -73,9 +73,9 @@ export const validateAllSelectionsForVerse = (targetVerse, bookId, chapter, vers
           const { selectionsChanged } = _validateVerseSelections(filtered, selections)
           if (!!contextId.invalidated !== !!selectionsChanged) {
             _validationsChanged = true
+            // callback
+            invalidateCheckCallback && invalidateCheckCallback(checkingOccurrence, selectionsChanged)
           }
-          // callback
-          invalidateCheckCallback && invalidateCheckCallback(checkingOccurrence, selectionsChanged)
         } else { // no selections, so not invalid
           // callback
           invalidateCheckCallback && invalidateCheckCallback(checkingOccurrence, false)
@@ -104,29 +104,35 @@ export async function validateAllSelections(targetBible, groupsData = null, inva
     for (let j = 0, lenGI = checks.length; j < lenGI; j++) {
       const checkingOccurrence = checks[j];
       const selections = checkingOccurrence.selections;
+      const reference = checkingOccurrence.reference
+      const chapter = reference.chapter
+      const verse = reference.verse
+      const ref = `${chapter}:${verse}`
 
-      if (selections && selections.length) {
-        const reference = checkingOccurrence.reference
-        const chapter = reference.chapter
-        const verse = reference.verse
-        const ref = `${chapter}:${verse}`
-
-        let targetVerse = filteredVerses[ref]
-        if (!targetVerse) {
-          targetVerse = getVerses(targetBible, ref);
-          if (typeof targetVerse !== 'string') {
-            targetVerse = getUsfmForVerseContent(targetVerse)
-          }
-          targetVerse = usfm.removeMarker(targetVerse) // remove USFM markers
-          filteredVerses[ref] = targetVerse
+      let targetVerse = filteredVerses[ref]
+      if (!targetVerse) {
+        targetVerse = getVerses(targetBible, ref);
+        if (typeof targetVerse !== 'string') {
+          targetVerse = getUsfmForVerseContent(targetVerse)
         }
-        if (targetVerse) {
+        targetVerse = usfm.removeMarker(targetVerse) // remove USFM markers
+        filteredVerses[ref] = targetVerse
+      }
+      if (targetVerse) {
+        if (selections && selections.length) {
           const { selectionsChanged } = _validateVerseSelections(targetVerse, selections)
-          if (selectionsChanged) {
-            invalidateCheckCallback && invalidateCheckCallback(checkingOccurrence)
+          if (!!checkingOccurrence.invalidated !== !!selectionsChanged) {
+            invalidateCheckCallback && invalidateCheckCallback(checkingOccurrence, selectionsChanged)
             _selectionsChanged = true
+            await delay(10)
           }
-          await delay(10)
+        } else { // no selections, so not invalid
+          const selectionsChanged = false
+          if (!!checkingOccurrence.invalidated !== selectionsChanged) {
+            // callback
+            invalidateCheckCallback && invalidateCheckCallback(checkingOccurrence, false)
+            await delay(10)
+          }
         }
       }
     }

@@ -205,7 +205,7 @@ const Checker = ({
 
         delay(100).then(() => {
           // validate all checks
-          validateAllSelections(targetBible, groupsIndex, (invalidatedCheck) => {
+          validateAllSelections(targetBible, groupsData, (invalidatedCheck) => {
             if (invalidatedCheck) {
               console.log(`${name}-saveEditVerse - check invalidated`, invalidatedCheck)
               _saveData({ invalidated: true })
