@@ -4,6 +4,7 @@ import { getUsfmForVerseContent } from '../helpers/UsfmFileConversionHelpers'
 import { getVerses } from 'bible-reference-range'
 import { delay } from '../tc_ui_toolkit/ScripturePane/helpers/utils'
 import { checkSelectionOccurrences } from './selections'
+import { getVerseString } from '../helpers/tsv-groupdata-parser/verseHelpers'
 
 /**
  * validata selections in verse string or object
@@ -52,15 +53,15 @@ export const validateAllSelectionsForVerse = (targetVerse, bookId, chapter, vers
     const checks = groupsData[groupId]
 
     for (let j = 0, lenGI = checks.length; j < lenGI; j++) {
-      const checkingOccurrence = checks[j]
-      const selections = checkingOccurrence.selections
+      const check = checks[j]
+      const selections = check.selections
       const reference = {
         bookId,
         chapter,
         verse
       }
 
-      const contextId = checkingOccurrence.contextId
+      const contextId = check.contextId
       if (isEqual(reference, contextId?.reference)) {
         if (selections && selections.length) {
           if (!filtered) { // for performance, we filter the verse only once and only if there is a selection
@@ -70,15 +71,19 @@ export const validateAllSelectionsForVerse = (targetVerse, bookId, chapter, vers
             filtered = usfm.removeMarker(targetVerse) // remove USFM markers
           }
 
-          const { selectionsChanged } = _validateVerseSelections(filtered, selections)
-          if (!!contextId.invalidated !== !!selectionsChanged) {
+          const { selectionsChanged: currentSelectionsInvalid } = _validateVerseSelections(filtered, selections)
+          if (!!check.invalidated !== !!currentSelectionsInvalid) {
             _validationsChanged = true
-            // callback
-            invalidateCheckCallback && invalidateCheckCallback(checkingOccurrence, selectionsChanged)
           }
-        } else { // no selections, so not invalid
           // callback
-          invalidateCheckCallback && invalidateCheckCallback(checkingOccurrence, false)
+          invalidateCheckCallback && invalidateCheckCallback(check, currentSelectionsInvalid)
+        } else { // no selections, so not invalid
+          const currentSelectionsInvalid = false
+          if (!!check.invalidated !== !!currentSelectionsInvalid) {
+            _validationsChanged = true
+          }
+          // callback
+          invalidateCheckCallback && invalidateCheckCallback(check, currentSelectionsInvalid)
         }
       }
     }
@@ -87,13 +92,31 @@ export const validateAllSelectionsForVerse = (targetVerse, bookId, chapter, vers
 };
 
 /**
+ * do callback if invalidated state has changed for this chekc
+ * @param {object} check - check to verify if changed
+ * @param {boolean} currentSelectionsInvalid - new invalidated state
+ * @param {boolean} _selectionsChanged - running flag for any invalidation change
+ * @param {function} invalidateCheckCallback - callback function
+ * @returns {Promise<boolean>}
+ */
+async function checkIfInvalidationChanged(check, currentSelectionsInvalid, _selectionsChanged, invalidateCheckCallback) {
+  if (!!check.invalidated !== currentSelectionsInvalid) {
+    _selectionsChanged = true
+    // callback
+    invalidateCheckCallback && invalidateCheckCallback(check, currentSelectionsInvalid)
+    await delay(100)
+  }
+  return _selectionsChanged
+}
+
+/**
  * verify all selections
  * @param {Object} targetBible - target bible
  * @param {Object} groupsData - all the checks keyed by catagory
  * @param {Function} invalidateCheckCallback
  * @return {Promise<boolean>}
  */
-export async function validateAllSelections(targetBible, groupsData = null, invalidateCheckCallback = null)  {
+export async function validateSelectionsForAllChecks(targetBible, groupsData = null, invalidateCheckCallback = null)  {
   let _selectionsChanged = false;
   const filteredVerses = {} // for caching verse content parsed to text
 
@@ -102,37 +125,27 @@ export async function validateAllSelections(targetBible, groupsData = null, inva
     const checks = groupsData[groupId]
 
     for (let j = 0, lenGI = checks.length; j < lenGI; j++) {
-      const checkingOccurrence = checks[j];
-      const selections = checkingOccurrence.selections;
-      const reference = checkingOccurrence.reference
+      const check = checks[j];
+      const selections = check.selections;
+      const reference = check.contextId?.reference
       const chapter = reference.chapter
       const verse = reference.verse
       const ref = `${chapter}:${verse}`
 
       let targetVerse = filteredVerses[ref]
       if (!targetVerse) {
-        targetVerse = getVerses(targetBible, ref);
-        if (typeof targetVerse !== 'string') {
-          targetVerse = getUsfmForVerseContent(targetVerse)
-        }
+        targetVerse = getVerseString(targetBible, ref, false)
         targetVerse = usfm.removeMarker(targetVerse) // remove USFM markers
         filteredVerses[ref] = targetVerse
       }
+
       if (targetVerse) {
         if (selections && selections.length) {
-          const { selectionsChanged } = _validateVerseSelections(targetVerse, selections)
-          if (!!checkingOccurrence.invalidated !== !!selectionsChanged) {
-            invalidateCheckCallback && invalidateCheckCallback(checkingOccurrence, selectionsChanged)
-            _selectionsChanged = true
-            await delay(10)
-          }
+          const { selectionsChanged: currentSelectionsInvalid } = _validateVerseSelections(targetVerse, selections)
+          _selectionsChanged = await checkIfInvalidationChanged(check, currentSelectionsInvalid, _selectionsChanged, invalidateCheckCallback)
         } else { // no selections, so not invalid
-          const selectionsChanged = false
-          if (!!checkingOccurrence.invalidated !== selectionsChanged) {
-            // callback
-            invalidateCheckCallback && invalidateCheckCallback(checkingOccurrence, false)
-            await delay(10)
-          }
+          const currentSelectionsInvalid = false
+          _selectionsChanged = await checkIfInvalidationChanged(check, currentSelectionsInvalid, _selectionsChanged, invalidateCheckCallback)
         }
       }
     }

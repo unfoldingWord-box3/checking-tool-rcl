@@ -28,8 +28,8 @@ import * as AlignmentHelpers from '../utils/alignmentHelpers'
 import * as UsfmFileConversionHelpers from '../utils/UsfmFileConversionHelpers'
 import VerseCheck from '../tc_ui_toolkit/VerseCheck'
 import {
-  validateAllSelections,
   validateAllSelectionsForVerse,
+  validateSelectionsForAllChecks,
   validateVerseSelections
 } from '../utils/selectionsHelpers'
 import { delay } from '../tc_ui_toolkit/ScripturePane/helpers/utils'
@@ -160,6 +160,7 @@ const Checker = ({
   const tempSelections = getTempValueFor('selections') || []
   const tempNothingToSelect = getTempValueFor('nothingToSelect')
   const currentNothingToSelect = getCurrentValueFor('nothingToSelect')
+  const groupsDataLoaded = !!groupsData
 
   function updateModeForSelections(newSelections, nothingToSelect) {
     const noSelections = (!newSelections?.length)
@@ -202,19 +203,21 @@ const Checker = ({
       if (flattenedGroupData && check?.contextId) {
         updateContext(check, groupsIndex)
         updateModeForSelections(check?.selections, check?.nothingToSelect)
-
-        delay(100).then(() => {
-          // validate all checks
-          validateAllSelections(targetBible, groupsData, (invalidatedCheck) => {
-            if (invalidatedCheck) {
-              console.log(`${name}-saveEditVerse - check invalidated`, invalidatedCheck)
-              _saveData({ invalidated: true })
-            }
-          })
-        })
       }
     }
   }, [contextId, checkingData, glWordsData]);
+
+  useEffect(() => {
+    if (groupsDataLoaded) {
+      // validate all checks
+      validateSelectionsForAllChecks(targetBible, groupsData, (check, invalidated) => {
+        if (check) {
+          console.log(`${name}-saveEditVerse - check validation changed`, check)
+          _saveCheckingData(groupsData, check, 'invalidated', invalidated, false)
+        }
+      })
+    }
+  }, [groupsDataLoaded]);
 
   function updateContext(newCheck, groupsIndex_ = groupsIndex) {
     const contextId = newCheck?.contextId
@@ -585,33 +588,30 @@ const Checker = ({
 
   /**
    * save changes to check data if not current check
+   * @param {object} groupsData
    * @param {object} check
    * @param {string} key - key to change in check
    * @param {any} value - value to change in check
    * @private
    */
-  const _saveCheckingData = (check, key, value) => {
+  const _saveCheckingData = (groupsData, check, key, value, onlyUpdateOnValueChange) => {
     console.log(`${name}-_saveCheckingData persist to file`, check)
     const _groupsData = _.cloneDeep(groupsData)
     const checkInGroupsData = findCheck(_groupsData, check?.contextId)
+    if (checkInGroupsData) {
+      if (!onlyUpdateOnValueChange || (check[key] !== value)) {
+        checkInGroupsData[key] = value
 
-    // update values for check
-    for (const key of Object.keys(check)) {
-      checkInGroupsData[key] = check[key]
-    }
+        const newState = {
+          groupsData: _groupsData,
+        }
+        setState(newState);
 
-    if (checkInGroupsData[key] !== value) {
-      checkInGroupsData[key] = value
-
-      const newState = {
-        groupsData: _groupsData,
+        const newCheckingData = {
+          currentCheck: checkInGroupsData,
+        }
+        saveCheckingData && saveCheckingData(newCheckingData)
       }
-      setState(newState);
-
-      const newCheckingData = {
-        currentCheck: checkInGroupsData,
-      }
-      saveCheckingData && saveCheckingData(newCheckingData)
     }
   }
 
@@ -789,8 +789,16 @@ const Checker = ({
 
     validateAllSelectionsForVerse(newVerseText, bookId, chapter, verse, groupsData, (check, invalidated) => {
       if (check) {
+        const currentCheckId = currentCheck?.contextId?.checkId
+        const checkId = check?.contextId?.checkId
+
+        if (checkId === currentCheckId) {
+          // need to update current check
+          _saveData({ invalidated })
+        }
+
         console.log(`${name}-editTargetVerse - check validated, state changed: invalid: ${invalidated}`, check)
-        _saveCheckingData(check, 'invalidated', invalidated)
+        _saveCheckingData(groupsData, check, 'invalidated', invalidated, true)
       }
     })
   }
