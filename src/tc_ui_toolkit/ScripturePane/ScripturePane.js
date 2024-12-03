@@ -19,6 +19,7 @@ function ScripturePane({
   contextId,
   translate,
   selections,
+  shiftPosition,
   showPopover,
   getLexiconData,
   setToolSettings,
@@ -234,6 +235,7 @@ function ScripturePane({
         </div>
         <div className="panes-container">
           <Panes
+            addObjectPropertyToManifest={addObjectPropertyToManifest}
             bibles={bibles}
             contextId={contextId}
             translate={translate}
@@ -246,7 +248,7 @@ function ScripturePane({
             changePaneFontSize={changePaneFontSize}
             changePaneFontType={changePaneFontType}
             currentPaneSettings={currentPaneSettings}
-            addObjectPropertyToManifest={addObjectPropertyToManifest}
+            shiftPosition={shiftPosition}
           />
           {
             getAvailableScripturePaneSelections && // only show option if there is a callback to get selections
@@ -327,6 +329,7 @@ ScripturePane.propTypes = {
   getAvailableScripturePaneSelections: PropTypes.func.isRequired,
   onExpandedScripturePaneShow: PropTypes.func, // called when expanded Scripture Pane as shown or hidden
   editVerseRef: PropTypes.string, // if given then open verse for edit (single verse)
+  shiftPosition: PropTypes.func.isRequired,
 };
 
 /**

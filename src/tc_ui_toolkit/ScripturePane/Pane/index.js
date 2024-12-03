@@ -64,24 +64,25 @@ function getTitleContainerContent(isLTR, headingText, localizedDescription, font
  * @return {*}
  */
 function TitleContainer({
-  font,
-  index,
-  isLTR,
-  fontSize,
-  isHebrew,
-  fontClass,
-  removePane,
-  headingText,
-  isTargetBible,
-  selectFontLabel,
+  addObjectPropertyToManifest,
   changePaneFontSize,
   changePaneFontType,
-  complexScriptFonts,
-  removeResourceLabel,
-  localizedDescription,
   clickToRemoveResourceLabel,
-  addObjectPropertyToManifest,
+  complexScriptFonts,
+  font,
+  fontSize,
+  fontClass,
   fullTitle,
+  headingText,
+  index,
+  isHebrew,
+  isTargetBible,
+  isLTR,
+  localizedDescription,
+  removePane,
+  removeResourceLabel,
+  selectFontLabel,
+  shiftPosition,
   viewURL,
 }) {
   if (isLTR) {
@@ -110,6 +111,7 @@ function TitleContainer({
         clickToRemoveResourceLabel={clickToRemoveResourceLabel}
         addObjectPropertyToManifest={addObjectPropertyToManifest}
         viewURL={viewURL}
+        shiftPosition={shiftPosition}
       />
     </>;
   } else { // arrange rtl
@@ -129,6 +131,7 @@ function TitleContainer({
         clickToRemoveResourceLabel={clickToRemoveResourceLabel}
         addObjectPropertyToManifest={addObjectPropertyToManifest}
         viewURL={viewURL}
+        shiftPosition={shiftPosition}
       />
       {getTitleContainerContent(isLTR, headingText, localizedDescription, fontClass, fullTitle)}
     </>;
@@ -136,29 +139,30 @@ function TitleContainer({
 }
 
 const Pane = ({
-  font,
-  index,
-  verse,
-  chapter,
+  addObjectPropertyToManifest,
   bibleId,
-  fontSize,
-  fontClass,
-  direction,
-  translate,
-  removePane,
-  description,
-  languageName,
-  verseElements,
-  isTargetBible,
-  selectFontLabel,
   changePaneFontSize,
   changePaneFontType,
-  complexScriptFonts,
-  removeResourceLabel,
+  chapter,
   clickToRemoveResourceLabel,
-  addObjectPropertyToManifest,
+  complexScriptFonts,
+  description,
+  direction,
+  font,
+  fontClass,
+  fontSize,
   fullTitle,
+  index,
+  isTargetBible,
+  languageName,
   preRelease,
+  removePane,
+  removeResourceLabel,
+  selectFontLabel,
+  shiftPosition,
+  translate,
+  verse,
+  verseElements,
 }) => {
   const isLTR_ = isLTR(direction);
   const viewURL = bibleId === 'viewURL';
@@ -173,24 +177,25 @@ const Pane = ({
     <div className="pane-container">
       <div className={isLTR_ ? 'pane-title-container-rtl' : 'pane-title-container-ltr'}>
         <TitleContainer
+          addObjectPropertyToManifest={addObjectPropertyToManifest}
+          changePaneFontSize={changePaneFontSize}
+          changePaneFontType={changePaneFontType}
+          clickToRemoveResourceLabel={clickToRemoveResourceLabel}
+          complexScriptFonts={complexScriptFonts}
           font={font}
+          fontSize={fontSize}
+          fontClass={fontClass}
+          fullTitle={fullTitle}
+          headingText={headingText}
           index={index}
           isLTR={isLTR_}
           isHebrew={isHebrew}
-          fontSize={fontSize}
-          fontClass={fontClass}
-          removePane={removePane}
-          headingText={headingText}
           isTargetBible={isTargetBible}
-          selectFontLabel={selectFontLabel}
-          complexScriptFonts={complexScriptFonts}
-          changePaneFontSize={changePaneFontSize}
-          changePaneFontType={changePaneFontType}
-          removeResourceLabel={removeResourceLabel}
           localizedDescription={localizedDescription}
-          clickToRemoveResourceLabel={clickToRemoveResourceLabel}
-          addObjectPropertyToManifest={addObjectPropertyToManifest}
-          fullTitle={fullTitle}
+          removePane={removePane}
+          removeResourceLabel={removeResourceLabel}
+          selectFontLabel={selectFontLabel}
+          shiftPosition={shiftPosition}
           viewURL={viewURL}
         />
       </div>
@@ -210,33 +215,34 @@ const Pane = ({
 };
 
 Pane.propTypes = {
+  addObjectPropertyToManifest: PropTypes.func.isRequired,
+  bibleId: PropTypes.string.isRequired,
+  changePaneFontSize: PropTypes.func.isRequired,
+  changePaneFontType: PropTypes.func.isRequired,
+  chapter: PropTypes.number.isRequired,
+  clickToRemoveResourceLabel: PropTypes.string.isRequired,
+  complexScriptFonts: PropTypes.object.isRequired,
+  description: PropTypes.string.isRequired,
+  direction: PropTypes.string.isRequired,
   fontSize: PropTypes.number,
   fontClass: PropTypes.string,
   font: PropTypes.string.isRequired,
-  index: PropTypes.number.isRequired,
-  verse: PropTypes.oneOfType(PropTypes.number, PropTypes.string).isRequired,
-  bibleId: PropTypes.string.isRequired,
-  chapter: PropTypes.number.isRequired,
-  translate: PropTypes.func.isRequired,
-  removePane: PropTypes.func.isRequired,
-  direction: PropTypes.string.isRequired,
-  isTargetBible: PropTypes.bool.isRequired,
-  description: PropTypes.string.isRequired,
-  languageName: PropTypes.string.isRequired,
-  selectFontLabel: PropTypes.string.isRequired,
-  changePaneFontSize: PropTypes.func.isRequired,
-  changePaneFontType: PropTypes.func.isRequired,
-  complexScriptFonts: PropTypes.object.isRequired,
-  removeResourceLabel: PropTypes.string.isRequired,
-  addObjectPropertyToManifest: PropTypes.func.isRequired,
-  clickToRemoveResourceLabel: PropTypes.string.isRequired,
   fullTitle: PropTypes.string,
+  index: PropTypes.number.isRequired,
+  isTargetBible: PropTypes.bool.isRequired,
+  languageName: PropTypes.string.isRequired,
+  preRelease: PropTypes.string,
+  removePane: PropTypes.func.isRequired,
+  removeResourceLabel: PropTypes.string.isRequired,
+  selectFontLabel: PropTypes.string.isRequired,
+  shiftPosition: PropTypes.func.isRequired,
+  translate: PropTypes.func.isRequired,
+  verse: PropTypes.oneOfType(PropTypes.number, PropTypes.string).isRequired,
   verseElements: PropTypes.oneOfType([
     PropTypes.element,
     PropTypes.string,
     PropTypes.array,
   ]).isRequired,
-  preRelease: PropTypes.string,
   viewURL: PropTypes.bool,
 };
 
