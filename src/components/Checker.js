@@ -71,6 +71,7 @@ const Checker = ({
   contextId,
   getLexiconData,
   glWordsData,
+  importBook,
   initialSettings,
   saveCheckingData,
   saveSettings,
@@ -931,11 +932,6 @@ const Checker = ({
     setSettings({ paneSettings: _paneSettings }, true)
   }
 
-  function importBook() {
-    console.log(`${name}-importBook`)
-    // TODO
-  }
-
   const styleProps = styles || {}
   const _checkerStyles = {
     ...localStyles.containerDiv,
@@ -1073,6 +1069,7 @@ Checker.propTypes = {
   contextId: PropTypes.object.isRequired,
   glWordsData: PropTypes.object.isRequired,
   getLexiconData: PropTypes.func,
+  importBook: PropTypes.func,
   initialSettings: PropTypes.object,
   saveCheckingData: PropTypes.func,
   saveSettings: PropTypes.func,
