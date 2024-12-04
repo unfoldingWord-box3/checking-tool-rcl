@@ -924,10 +924,16 @@ const Checker = ({
    * @param {boolean} shiftLeft - if true then shift the pane to the left by one step, otherwise shift to the right
    */
   function handleShiftScripturePane(index, shiftLeft) {
+    console.log(`${name}-handleShiftScripturePane - shift index ${index} to left: ${shiftLeft}`)
     const _paneSettings = cloneDeep(paneSettings)
     const newPosition = shiftLeft ? index - 1 : index + 1
     swapElements(_paneSettings, index, newPosition)
     setSettings({ paneSettings: _paneSettings }, true)
+  }
+
+  function importBook() {
+    console.log(`${name}-importBook`)
+    // TODO
   }
 
   const styleProps = styles || {}
@@ -963,6 +969,7 @@ const Checker = ({
                 expandedScripturePaneTitle={expandedScripturePaneTitle}
                 getAvailableScripturePaneSelections={null}
                 getLexiconData={getLexiconData_}
+                importBook={importBook}
                 makeSureBiblesLoadedForTool={null}
                 projectDetailsReducer={{ manifest }}
                 selections={currentSelections}

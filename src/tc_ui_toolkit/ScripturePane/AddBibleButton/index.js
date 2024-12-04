@@ -27,7 +27,9 @@ class AddBible extends React.Component {
   render() {
     let { showAddBibleModal, clickAddResource } = this.props;
     return (
-      <div className="add-bible-button-container">
+      <div className="add-bible-button-container" style={{
+        minWidth: '80px', flex: '0.2'
+      }}>
         <div style={{
           height: '60px', width: '60px', cursor: 'pointer',
         }} title={clickAddResource} onClick={showAddBibleModal}>
