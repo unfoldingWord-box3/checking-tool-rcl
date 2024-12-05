@@ -15,24 +15,26 @@ import { BsArrowsFullscreen } from 'react-icons/bs'
 const NAMESPACE = 'ScripturePane';
 
 function ScripturePane({
-  bibles,
-  contextId,
-  translate,
-  selections,
-  showPopover,
-  getLexiconData,
-  setToolSettings,
-  editTargetVerse,
-  handleModalOpen,
-  complexScriptFonts,
-  currentPaneSettings,
-  projectDetailsReducer,
-  expandedScripturePaneTitle,
-  makeSureBiblesLoadedForTool,
   addObjectPropertyToManifest,
-  getAvailableScripturePaneSelections,
-  onExpandedScripturePaneShow,
+  bibles,
+  complexScriptFonts,
+  contextId,
+  currentPaneSettings,
+  editTargetVerse,
   editVerseRef,
+  expandedScripturePaneTitle,
+  getAvailableScripturePaneSelections,
+  getLexiconData,
+  handleModalOpen,
+  importBook,
+  makeSureBiblesLoadedForTool,
+  onExpandedScripturePaneShow,
+  projectDetailsReducer,
+  selections,
+  setToolSettings,
+  shiftPosition,
+  showPopover,
+  translate,
 }) {
   const [showExpandedScripturePane, toggleExpandedScripturePane] = useState(false);
   const [showAddPaneModal, toggleAddPaneModal] = useState(false);
@@ -234,6 +236,7 @@ function ScripturePane({
         </div>
         <div className="panes-container">
           <Panes
+            addObjectPropertyToManifest={addObjectPropertyToManifest}
             bibles={bibles}
             contextId={contextId}
             translate={translate}
@@ -246,7 +249,7 @@ function ScripturePane({
             changePaneFontSize={changePaneFontSize}
             changePaneFontType={changePaneFontType}
             currentPaneSettings={currentPaneSettings}
-            addObjectPropertyToManifest={addObjectPropertyToManifest}
+            shiftPosition={shiftPosition}
           />
           {
             getAvailableScripturePaneSelections && // only show option if there is a callback to get selections
@@ -254,6 +257,13 @@ function ScripturePane({
                 showAddBibleModal={showAddBibleModal}
                 clickAddResource={translate('pane.add_resource')}
               />
+          }
+          {
+            importBook &&  // only show option if there is a callback to import a book
+            <AddBibleButton
+              showAddBibleModal={importBook}
+              clickAddResource={translate('pane.add_resource')}
+            />
           }
         </div>
       </div>
@@ -309,24 +319,26 @@ ScripturePane.defaultProps = {
 };
 
 ScripturePane.propTypes = {
-  handleModalOpen: PropTypes.func,
+  addObjectPropertyToManifest: PropTypes.func.isRequired,
   bibles: PropTypes.object.isRequired,
-  translate: PropTypes.func.isRequired,
-  showPopover: PropTypes.func.isRequired,
   contextId: PropTypes.object.isRequired,
-  selections: PropTypes.array.isRequired,
-  getLexiconData: PropTypes.func.isRequired,
-  editTargetVerse: PropTypes.func.isRequired,
-  setToolSettings: PropTypes.func.isRequired,
   complexScriptFonts: PropTypes.object.isRequired,
   currentPaneSettings: PropTypes.array.isRequired,
-  projectDetailsReducer: PropTypes.object.isRequired,
-  addObjectPropertyToManifest: PropTypes.func.isRequired,
-  makeSureBiblesLoadedForTool: PropTypes.func.isRequired,
+  editTargetVerse: PropTypes.func.isRequired,
+  editVerseRef: PropTypes.string, // if given then open verse for edit (single verse)
   expandedScripturePaneTitle: PropTypes.string.isRequired,
   getAvailableScripturePaneSelections: PropTypes.func.isRequired,
+  getLexiconData: PropTypes.func.isRequired,
+  handleModalOpen: PropTypes.func,
+  importBook: PropTypes.func,
+  makeSureBiblesLoadedForTool: PropTypes.func.isRequired,
   onExpandedScripturePaneShow: PropTypes.func, // called when expanded Scripture Pane as shown or hidden
-  editVerseRef: PropTypes.string, // if given then open verse for edit (single verse)
+  projectDetailsReducer: PropTypes.object.isRequired,
+  selections: PropTypes.array.isRequired,
+  setToolSettings: PropTypes.func.isRequired,
+  shiftPosition: PropTypes.func,
+  showPopover: PropTypes.func.isRequired,
+  translate: PropTypes.func.isRequired,
 };
 
 /**

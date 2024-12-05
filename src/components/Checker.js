@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import PropTypes from 'prop-types'
-import _ from 'lodash'
+import _, { cloneDeep } from 'lodash'
 import GroupMenuComponent from './GroupMenuComponent'
 import { getBestVerseFromBook } from '../helpers/verseHelpers'
 import { removeUsfmMarkers } from '../utils/usfmHelpers'
@@ -71,6 +71,7 @@ const Checker = ({
   contextId,
   getLexiconData,
   glWordsData,
+  importBook,
   initialSettings,
   saveCheckingData,
   saveSettings,
@@ -287,7 +288,7 @@ const Checker = ({
     console.log(`${name}-setToolSettings ${fieldName}=${fieldValue}`)
     if (toolsSettings) {
       // Deep cloning object to avoid modifying original object
-      const _toolsSettings = { ...toolsSettings };
+      const _toolsSettings = cloneDeep(toolsSettings);
       let componentSettings = _toolsSettings?.[NAMESPACE]
       if (!componentSettings) {
         componentSettings = { }
@@ -823,7 +824,8 @@ const Checker = ({
 
   function updateSettings(newBibles, targetBible) {
     const _bibles = {}
-    let _paneSettings = []
+    let _paneSettings = initialSettings?.paneSettings || []
+    const panesInitialized = !!_paneSettings?.length
     const _paneKeySettings = initialSettings?.paneKeySettings || {}
     if (newBibles?.length) {
       for (const bible of newBibles) {
@@ -839,13 +841,15 @@ const Checker = ({
         const langKey = `${languageId}_${owner}`
         saveBibleToKey(_bibles, langKey, bibleId, book)
         saveBibleToKey(_bibles, languageId, bibleId, book) // also save as default for language without owner
-        const pane = initialPaneSettings || {
-          ...bible,
-          languageId
-        }
-        _paneSettings.push(pane)
-        if (!initialPaneSettings) {
-          _paneKeySettings[key] = pane
+        if (!panesInitialized) { // if paneSettings are not initialized
+          const pane = initialPaneSettings || {
+            ...bible,
+            languageId
+          }
+          _paneSettings.push(pane)
+          if (!initialPaneSettings) {
+            _paneKeySettings[key] = pane
+          }
         }
       }
     } else {
@@ -899,6 +903,34 @@ const Checker = ({
     expandedScripturePaneTitle = target_language.book.name;
   }
 
+  /**
+   * switch array elements at index1 and index2
+   * @param _array
+   * @param index1
+   * @param index2
+   */
+  function swapElements(_array, index1, index2) {
+    // Ensure the indices are within the array bounds
+    if (index1 >= 0 && index1 < _array.length && index2 >= 0 && index2 < _array.length) {
+      // Swap the elements
+      const temp = _array[index1];
+      _array[index1] = _array[index2];
+      _array[index2] = temp;
+    }
+  }
+
+  /**
+   * Shift Scripture Pane to left or right
+   * @param {number} index - current position in paneSettings
+   * @param {boolean} shiftLeft - if true then shift the pane to the left by one step, otherwise shift to the right
+   */
+  function handleShiftScripturePane(index, shiftLeft) {
+    console.log(`${name}-handleShiftScripturePane - shift index ${index} to left: ${shiftLeft}`)
+    const _paneSettings = cloneDeep(paneSettings)
+    const newPosition = shiftLeft ? index - 1 : index + 1
+    swapElements(_paneSettings, index, newPosition)
+    setSettings({ paneSettings: _paneSettings }, true)
+  }
 
   const styleProps = styles || {}
   const _checkerStyles = {
@@ -933,10 +965,12 @@ const Checker = ({
                 expandedScripturePaneTitle={expandedScripturePaneTitle}
                 getAvailableScripturePaneSelections={null}
                 getLexiconData={getLexiconData_}
+                importBook={importBook}
                 makeSureBiblesLoadedForTool={null}
                 projectDetailsReducer={{ manifest }}
                 selections={currentSelections}
                 setToolSettings={setToolSettingsScripture}
+                shiftPosition={handleShiftScripturePane}
                 showPopover={showPopover}
                 onExpandedScripturePaneShow={null}
                 translate={translate}
@@ -1035,6 +1069,7 @@ Checker.propTypes = {
   contextId: PropTypes.object.isRequired,
   glWordsData: PropTypes.object.isRequired,
   getLexiconData: PropTypes.func,
+  importBook: PropTypes.func,
   initialSettings: PropTypes.object,
   saveCheckingData: PropTypes.func,
   saveSettings: PropTypes.func,

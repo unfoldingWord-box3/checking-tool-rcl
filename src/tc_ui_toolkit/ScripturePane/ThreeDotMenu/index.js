@@ -1,27 +1,30 @@
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import RemoveCircle from '@material-ui/icons/RemoveCircle';
+import ArrowBackIcon from '@material-ui/icons/ArrowBack';
+import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
 import ThreeDotIcon from '../../ThreeDotIcon';
 import FontSizeSlider from '../../FontSizeSlider';
 import DropdownMenu, { MenuItem } from '../../DropdownMenu';
 import FontSelectionMenu from '../../FontSelectionMenu';
 
 function ThreeDotMenu({
-  font,
-  index,
-  fontSize,
-  isHebrew,
-  removePane,
+  addObjectPropertyToManifest,
   anchorOrigin,
-  isTargetBible,
-  transformOrigin,
-  selectFontLabel,
-  complexScriptFonts,
   changePaneFontSize,
   changePaneFontType,
-  removeResourceLabel,
   clickToRemoveResourceLabel,
-  addObjectPropertyToManifest,
+  complexScriptFonts,
+  font,
+  fontSize,
+  index,
+  isHebrew,
+  isTargetBible,
+  removePane,
+  removeResourceLabel,
+  selectFontLabel,
+  shiftPosition,
+  transformOrigin,
   viewURL,
 }) {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -66,6 +69,42 @@ function ThreeDotMenu({
             {removeResourceLabel}
           </div>
         </MenuItem>}
+
+        {!!shiftPosition && <>
+          <MenuItem
+            divider
+            onClick={() => {
+              shiftPosition(index, true);
+              handleClose();
+            }}
+            title={"Shift"}
+            style={{
+              display: 'flex', justifyContent: 'flex-start', alignItems: 'center',
+            }}
+          >
+            <ArrowBackIcon style={{ fontSize: '20px' }}/>
+            <div style={{ margin: '0px 10px', color: '#000000' }}>
+              {"Shift"}
+            </div>
+          </MenuItem>
+          <MenuItem
+            divider
+            onClick={() => {
+              shiftPosition(index, false);
+              handleClose();
+            }}
+            title={"Shift"}
+            style={{
+              display: 'flex', justifyContent: 'flex-start', alignItems: 'center',
+            }}
+          >
+            <ArrowForwardIcon style={{ fontSize: '20px' }}/>
+            <div style={{ margin: '0px 10px', color: '#000000' }}>
+              {"Shift"}
+            </div>
+          </MenuItem>
+        </>}
+
         <MenuItem disableOnClick divider>
           <FontSizeSlider value={fontSize} onChange={handleFontSizeChange}/>
         </MenuItem>
@@ -97,21 +136,22 @@ ThreeDotMenu.defaultProps = {
 };
 
 ThreeDotMenu.propTypes = {
-  fontSize: PropTypes.number,
+  addObjectPropertyToManifest: PropTypes.func.isRequired,
   anchorOrigin: PropTypes.object,
-  font: PropTypes.string.isRequired,
-  transformOrigin: PropTypes.object,
-  index: PropTypes.number.isRequired,
-  isHebrew: PropTypes.bool.isRequired,
-  removePane: PropTypes.func.isRequired,
-  isTargetBible: PropTypes.bool.isRequired,
-  selectFontLabel: PropTypes.string.isRequired,
   changePaneFontSize: PropTypes.func.isRequired,
   changePaneFontType: PropTypes.func.isRequired,
-  complexScriptFonts: PropTypes.object.isRequired,
-  removeResourceLabel: PropTypes.string.isRequired,
-  addObjectPropertyToManifest: PropTypes.func.isRequired,
   clickToRemoveResourceLabel: PropTypes.string.isRequired,
+  complexScriptFonts: PropTypes.object.isRequired,
+  fontSize: PropTypes.number,
+  font: PropTypes.string.isRequired,
+  index: PropTypes.number.isRequired,
+  isHebrew: PropTypes.bool.isRequired,
+  isTargetBible: PropTypes.bool.isRequired,
+  removePane: PropTypes.func.isRequired,
+  removeResourceLabel: PropTypes.string.isRequired,
+  selectFontLabel: PropTypes.string.isRequired,
+  shiftPosition: PropTypes.func.isRequired,
+  transformOrigin: PropTypes.object,
   viewURL: PropTypes.bool,
 };
 

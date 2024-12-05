@@ -14,19 +14,20 @@ import {
 import { getTitleWithId } from '../helpers/utils';
 
 function Panes({
+  addObjectPropertyToManifest,
   bibles,
-  contextId,
-  translate,
-  removePane,
-  selections,
-  showPopover,
-  getLexiconData,
-  projectManifest,
-  complexScriptFonts,
   changePaneFontSize,
   changePaneFontType,
+  contextId,
   currentPaneSettings,
-  addObjectPropertyToManifest,
+  complexScriptFonts,
+  getLexiconData,
+  projectManifest,
+  removePane,
+  selections,
+  shiftPosition,
+  showPopover,
+  translate,
 }) {
   const panes = [];
 
@@ -131,6 +132,7 @@ function Panes({
           clickToRemoveResourceLabel={translate('pane.remove_resource')}
           fullTitle={fullTitle}
           preRelease={isPreRelease}
+          shiftPosition={shiftPosition}
         />,
       );
     } catch (err) {
@@ -155,6 +157,7 @@ Panes.propTypes = {
   complexScriptFonts: PropTypes.object.isRequired,
   currentPaneSettings: PropTypes.array.isRequired,
   addObjectPropertyToManifest: PropTypes.func.isRequired,
+  shiftPosition: PropTypes.func.isRequired,
 };
 
 export default Panes;
